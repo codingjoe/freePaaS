@@ -24,6 +24,9 @@ docker compose up -f compose.yml -f compose.production.yml -d
 
 1. Copy `.env.example` to `.env` and fill in the required values.
 1. Update `Caddyfile` with your domain and email for Let's Encrypt.
+1. ```bash
+   python -c 'import secrets; print(secrets.token_urlsafe())' > secrets/postgres_password.txt
+   ```
 
 [caddy]: https://caddyserver.com/
 [distroless]: https://github.com/GoogleContainerTools/distroless
