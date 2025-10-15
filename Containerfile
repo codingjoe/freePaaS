@@ -1,0 +1,43 @@
+FROM ghcr.io/astral-sh/uv:bookworm AS build
+LABEL authors="codingjoe"
+
+# UV
+ENV UV_NO_DEV=1
+ENV UV_PYTHON_PREFERENCE=only-managed
+ENV UV_PYTHON_INSTALL_DIR=/opt/python
+ENV UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=1
+
+
+# Install dependencies
+COPY Aptfile /tmp
+RUN cd /tmp && apt update && cat Aptfile | xargs apt download \
+    && mkdir -p /dpkg && \
+    for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
+
+# Install Python and dependencies
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev --no-editable
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-editable
+
+
+FROM gcr.io/distroless/cc:nonroot
+
+# Copy binary dependencies
+COPY --from=build /dpkg /
+
+# Copy Python dependencies
+COPY --from=build --chown=python:python /opt/python /opt/python
+COPY --from=build --chown=app:app /app/.venv /opt/venv
+
+# Create the virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+EXPOSE 8000
+CMD ["python", "-m", "http.server"]
