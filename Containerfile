@@ -40,4 +40,7 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 EXPOSE 8000
-CMD ["python", "-m", "http.server"]
+
+WORKDIR /app
+
+ENTRYPOINT ["python", "-m", "granian", "--port", "8000", "--host", "0.0.0.0"]

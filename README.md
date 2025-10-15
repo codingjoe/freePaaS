@@ -20,6 +20,11 @@ docker compose up -f compose.yml -f compose.production.yml -d
 - [Redis] for caching and co
 - Install Python version and it's dependencies using [uv]
 
+## Set up
+
+1. Copy `.env.example` to `.env` and fill in the required values.
+1. Update `Caddyfile` with your domain and email for Let's Encrypt.
+
 [caddy]: https://caddyserver.com/
 [distroless]: https://github.com/GoogleContainerTools/distroless
 [postgresql]: https://www.postgresql.org/
