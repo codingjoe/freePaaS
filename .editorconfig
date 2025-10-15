@@ -1,0 +1,25 @@
+# http://editorconfig.org
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+charset = utf-8
+end_of_line = lf
+max_line_length = 88
+spelling_language = en-US
+
+[*.{js,cjs,mjs,jsx,ts,tsx}]
+ij_javascript_force_semicolon_style = false
+
+[*.py]
+indent_size = 4
+
+[*.{html,htm,svg,xml,md}]
+max_line_length = 120
+
+[justfile]
+indent_size = 4
