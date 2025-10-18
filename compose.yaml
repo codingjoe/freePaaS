@@ -1,23 +1,17 @@
 services:
-
   postgres:
     image: postgres:18.0-alpine
     volumes:
       - postgres:/var/lib/postgresql/data
     restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      - postgres_password
-    networks:
-      - lan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s
       retries: 5
       start_period: 30s
       timeout: 10s
-
   redis:
     image: redis:8.2.2-alpine
     volumes:
@@ -25,19 +19,20 @@ services:
     restart: unless-stopped
     environment:
       ALLOW_EMPTY_PASSWORD: yes
-    networks:
-      - lan
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       retries: 5
       start_period: 30s
       timeout: 10s
-
   web:
     build:
       context: .
-      dockerfile: Containerfile
+      dockerfile: containers/web/Containerfile
+      target: development
+      args:
+        UV_NO_DEV: 0
     restart: unless-stopped
     depends_on:
       postgres:
@@ -49,56 +44,17 @@ services:
     volumes:
       - .:/app:ro
     ports:
-      - 8000:8000
-    deploy:
-      mode: replicated
-      replicas: 2
+      - "8000:8000"
     env_file:
       - .env
-    networks:
-      - lan
     environment:
-      WEBSOCKET_REDIS_URL: redis://redis:6379/1
-      DATABASE_URL: postgresql://postgres:postgres@postgres/postgres
-      GRANIAN_INTERFACE: asgi  # Options: asgi, wsgi, rsgi (default)
+      REDIS_URL: redis://redis/
+      DATABASE_URL: postgresql://postgres:postgres@${POSTGRES_PW:-postgres}/postgres
+      GRANIAN_INTERFACE: asgi # Options: asgi, wsgi, rsgi (default)
       GRANIAN_LOG_ACCESS_ENABLED: true
       GRANIAN_LOG_ACCESS_FMT: '{"addr": "%(addr)s", "time": "%(time)s", "dt_ms": %(dt_ms)f, "status": %(status)d, "path": "%(path)s", "query_string": "%(query_string)s", "method": "%(method)s", "scheme": "%(scheme)s", "protocol": "%(protocol)s"}' # JSON format
-    command: "main:app"  # Path to your application instance
-
-  caddy:
-    image: caddy:2.10.0-alpine
-    restart: unless-stopped
-    depends_on:
-      web:
-        condition: service_started
-    cap_add:
-      - NET_ADMIN
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - caddy:/data
-      - caddy:/config
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    networks:
-      - lan
-      - wan
-    env_file:
-      - .env
-
+      GRANIAN_RELOAD: true
+    command: "main:app" # Path to your application instance
 volumes:
   postgres:
   redis:
-  caddy:
-
-networks:
-  lan:
-    driver: bridge
-    internal: true
-  wan:
-    driver: bridge
-
-secrets:
-  postgres_password:
-    file: ./secrets/postgres_password.txt

@@ -12,14 +12,11 @@ end_of_line = lf
 max_line_length = 88
 spelling_language = en-US
 
-[*.{js,cjs,mjs,jsx,ts,tsx}]
-ij_javascript_force_semicolon_style = false
-
 [*.py]
 indent_size = 4
 
 [*.{html,htm,svg,xml,md}]
 max_line_length = 120
 
-[justfile]
+[{Container,Docker}file]
 indent_size = 4

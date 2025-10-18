@@ -1,2 +1,0 @@
-{$DOMAIN:localhost}
-reverse_proxy http://web:8000

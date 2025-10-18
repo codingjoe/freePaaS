@@ -1,0 +1,118 @@
+services:
+  pocket-id:
+    container_name: pocket-id
+    image: ghcr.io/pocket-id/pocket-id:v1.13.1-distroless
+    restart: unless-stopped
+    environment:
+      LOG_JSON: true
+      TRUST_PROXY: true
+      APP_URL: "https://id.${HOSTNAME:-localhost}"
+    networks:
+      - lan
+    volumes:
+      - pocket-id:/app/data
+    read_only: true
+    user: '1000:1000'
+    deploy:
+      mode: global
+    healthcheck:
+      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:v8.14.5
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - lan
+    environment:
+      DOZZLE_AUTH_PROVIDER: forward-proxy
+      DOZZLE_AUTH_HEADER_USER: X-Forwarded-User
+      DOZZLE_AUTH_HEADER_EMAIL: X-Forwarded-Email
+      DOZZLE_AUTH_HEADER_NAME: X-Forwarded-Preferred-Username
+    deploy:
+      mode: global
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 3s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    labels:
+      dev.dozzle.group: host
+  postgres:
+    ports: !reset []
+    networks:
+      - lan
+    labels:
+      dev.dozzle.group: db
+  redis:
+    environment:
+      ALLOW_EMPTY_PASSWORD: no
+    ports: !reset []
+    networks:
+      - lan
+    labels:
+      dev.dozzle.group: db
+  web:
+    build:
+      target: production
+      args:
+        UV_NO_DEV: 1
+    volumes: !reset []
+    ports: !reset []
+    deploy:
+      mode: replicated
+      replicas: 2
+    networks:
+      - lan
+    labels:
+      dev.dozzle.group: app
+    environment:
+      GRANIAN_RELOAD: false
+  caddy:
+    container_name: caddy
+    build:
+      context: containers/caddy
+      dockerfile: Containerfile
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_started
+      dozzle:
+        condition: service_started
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy:/data
+      - caddy:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - lan
+      - wan
+    env_file:
+      - .env
+    labels:
+      dev.dozzle.group: host
+    deploy:
+      mode: global
+volumes:
+  postgres:
+  redis:
+  caddy:
+  pocket-id:
+networks:
+  lan:
+    driver: bridge
+    internal: true
+  wan:
+    driver: bridge
