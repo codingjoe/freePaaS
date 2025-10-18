@@ -5,14 +5,12 @@ Production ready containerized project template for Python web applications usin
 ## Usage
 
 ```
-curl -fsSL https://raw.githubusercontent.com/codingjoe/python-template/main/bin/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/codingjoe/python-container/main/bin/install.sh | sh
 ```
 
 ```bash
 # Dev
 docker compose up -d
-# Prod
-docker compose -f compose.yaml -f compose.production.yaml up -d
 ```
 
 ## Features

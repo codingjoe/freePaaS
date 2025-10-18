@@ -3,7 +3,7 @@
 set -eu
 
 echo "Creating environment form template..."
-gh repo create --template codingjoe/python-container
+gh repo create --template codingjoe/python-container --private
 cd python-container || exit 1
 mv .env.template .env
 

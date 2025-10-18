@@ -6,8 +6,8 @@
 			delay_start 3
 			realm generic
 			driver generic
-			client_id bb8672b2-141a-42fb-b5ba-131212fec65e # Replace with your own client ID
-			client_secret xg9whdNvQtFbUczboGsbDe7d9oWjdHXH # Replace with your own client secret
+			client_id {$CADDY_AUTH_CLIENT_ID} # Replace with your own client ID
+			client_secret {$CADDY_AUTH_CLIENT_SECRET} # Replace with your own client secret
 			scopes openid email profile
 			base_auth_url https://id.{$HOSTNAME} #Replace
 			metadata_url https://id.{$HOSTNAME}/.well-known/openid-configuration #Replace
