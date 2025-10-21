@@ -1,7 +1,6 @@
 .*
 README.md
 Containerfile
-*.dockerignore
 .venv/
 node_modules/
 containers/

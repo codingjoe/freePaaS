@@ -29,7 +29,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: containers/web/Containerfile
+      dockerfile: containers/web/python/Containerfile
       target: development
       args:
         UV_NO_DEV: 0
@@ -50,11 +50,7 @@ services:
     environment:
       REDIS_URL: redis://redis/
       DATABASE_URL: postgresql://postgres:postgres@${POSTGRES_PW:-postgres}/postgres
-      GRANIAN_INTERFACE: asgi # Options: asgi, wsgi, rsgi (default)
-      GRANIAN_LOG_ACCESS_ENABLED: true
-      GRANIAN_LOG_ACCESS_FMT: '{"addr": "%(addr)s", "time": "%(time)s", "dt_ms": %(dt_ms)f, "status": %(status)d, "path": "%(path)s", "query_string": "%(query_string)s", "method": "%(method)s", "scheme": "%(scheme)s", "protocol": "%(protocol)s"}' # JSON format
-      GRANIAN_RELOAD: true
-    command: "main:app" # Path to your application instance
+    command: "http.server" # module to run
 volumes:
   postgres:
   redis:
