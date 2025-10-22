@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="freePaaS: Secure, convenient, fast & free forever!" src="logo.svg" style="border-radius: 12px">
+<img alt="freePaaS: Secure, convenient, fast & free forever!" src="logo.svg">
 </p>
 
 # freePaaS
