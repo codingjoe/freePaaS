@@ -1,4 +1,8 @@
-# Python Web Server Container Template
+<p align="center">
+<img alt="freePaaS: Secure, convenient, fast & free forever!" src="logo.svg" style="border-radius: 12px">
+</p>
+
+# freePaaS
 
 Production ready containerized project template for Python web applications using PostgreSQL and Redis.
 
