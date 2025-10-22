@@ -2,9 +2,16 @@
 <img alt="freePaaS: Secure, convenient, fast & free forever!" src="logo.svg">
 </p>
 
-# freePaaS
+# freePaaS — Secure, convenient, fast & free forever!
 
-Production ready containerized project template for Python web applications using PostgreSQL and Redis.
+Production ready services fully managed on a RaspberryPi (or any other machine):
+
+- PostgreSQL
+- Redis
+- Nodejs
+- Python
+
+No fuss automatic deployments straight form GitHub.
 
 ## Usage
 
