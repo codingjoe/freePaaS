@@ -1,18 +1,17 @@
 services:
   pocket-id:
     container_name: pocket-id
-    image: ghcr.io/pocket-id/pocket-id:v1.13.1-distroless
+    image: ghcr.io/pocket-id/pocket-id:v1.14.0
     restart: unless-stopped
     environment:
       LOG_JSON: true
       TRUST_PROXY: true
       APP_URL: "https://id.${HOSTNAME:-localhost}"
+      INTERNAL_APP_URL: "http://pocket-id:1411"
     networks:
       - lan
     volumes:
       - pocket-id:/app/data
-    read_only: true
-    user: '1000:1000'
     deploy:
       mode: global
     healthcheck:
@@ -85,6 +84,8 @@ services:
         condition: service_started
       dozzle:
         condition: service_started
+      pocket-id:
+        condition: service_healthy
     cap_add:
       - NET_ADMIN
     ports:

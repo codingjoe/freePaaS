@@ -2,4 +2,8 @@ FROM caddy:2.10.0-alpine
 
 RUN caddy add-package github.com/greenpau/caddy-security
 
+ENV CADDY_AUTH_CLIENT_ID,=CADDY_AUTH_CLIENT_SECRET
+ENV HOSTNAME=localhost
+
+ENV TZ=UTC
 COPY ./Caddyfile /etc/caddy/Caddyfile
