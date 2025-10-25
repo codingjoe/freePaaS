@@ -6,4 +6,4 @@ ENV CADDY_AUTH_CLIENT_ID,=CADDY_AUTH_CLIENT_SECRET
 ENV HOSTNAME=localhost
 
 ENV TZ=UTC
-COPY ./Caddyfile /etc/caddy/Caddyfile
+COPY ./containers/caddy/Caddyfile /etc/caddy/Caddyfile

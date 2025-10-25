@@ -74,8 +74,8 @@ services:
   caddy:
     container_name: caddy
     build:
-      context: containers/caddy
-      dockerfile: Containerfile
+      context: .
+      dockerfile: containers/caddy/Containerfile
     restart: unless-stopped
     depends_on:
       web:
