@@ -63,7 +63,7 @@ services:
       target: production
       args:
         UV_NO_DEV: 1
-    volumes: !reset []
+    volumes: []
     ports: !reset []
     deploy:
       mode: replicated
