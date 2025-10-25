@@ -22,17 +22,15 @@ services:
       start_period: 10s
   dozzle:
     container_name: dozzle
-    image: amir20/dozzle:v8.14.5
+    image: amir20/dozzle:v8.14.6
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - lan
+      - wan # for gravatar
     environment:
       DOZZLE_AUTH_PROVIDER: forward-proxy
-      DOZZLE_AUTH_HEADER_USER: X-Forwarded-User
-      DOZZLE_AUTH_HEADER_EMAIL: X-Forwarded-Email
-      DOZZLE_AUTH_HEADER_NAME: X-Forwarded-Preferred-Username
     deploy:
       mode: global
     healthcheck:

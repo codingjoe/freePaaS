@@ -10,5 +10,9 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: docker
+    directories:
+      - "/containers/caddy"
+      - "/containers/web/node"
+      - "/containers/web/python"
     schedule:
       interval: weekly

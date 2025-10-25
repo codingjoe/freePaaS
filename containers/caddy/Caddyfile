@@ -9,14 +9,14 @@
 			client_id {$CADDY_AUTH_CLIENT_ID} # Replace with your own client ID
 			client_secret {$CADDY_AUTH_CLIENT_SECRET} # Replace with your own client secret
 			scopes openid email profile groups
-			base_auth_url https://id.{$HOSTNAME} #Replace
+			base_auth_url https://id.{$HOSTNAME}/authorize #Replace
 			metadata_url http://pocket-id:1411/.well-known/openid-configuration #Replace
 		}
 		authentication portal pocketId {
 			crypto default token lifetime 86400 # Seconds until you have to re-authenticate
 			enable identity provider generic
 			cookie insecure off # Set to "on" if you're not using HTTPS
-			cookie domain .{$HOSTNAME} #  If using multiple clients/portals you have to set the cookie domain for each one so they do not conflict when trying to refresh the session.
+			cookie domain *.{$HOSTNAME} #  If using multiple clients/portals you have to set the cookie domain for each one so they do not conflict when trying to refresh the session.
 			transform user {
 				match realm generic
 				action add role user
@@ -26,6 +26,10 @@
 			set auth url /caddy-security/oauth2/generic
 			allow roles user
 			inject headers with claims
+      inject header "Remote-Name" from "name"
+      inject header "Remote-User" from "sub"
+      inject header "Remote-Email" from "email"
+      inject header "Remote-Groups" from "roles"
 		}
 	}
 }
