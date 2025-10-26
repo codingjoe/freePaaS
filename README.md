@@ -51,6 +51,9 @@ docker compose up -d
 
 [caddy]: https://caddyserver.com/
 [distroless]: https://github.com/GoogleContainerTools/distroless
+[dozzle]: http://dozzle.dev/
+[nodejs]: https://nodejs.org/
 [postgresql]: https://www.postgresql.org/
+[python]: https://www.python.org/
 [redis]: https://redis.io/
 [uv]: https://docs.astral.sh/uv/
