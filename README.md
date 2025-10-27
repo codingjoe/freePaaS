@@ -34,26 +34,8 @@ docker compose up -d
 - [Redis] for caching and co
 - Install Python version and it's dependencies using [uv]
 
-## Roadmap
-
-- [x] Add [Python] runtime container
-- [x] Add [Nodejs] runtime container
-- [x] Add [PostgreSQL] service
-- [x] Add [Redis] service
-- [x] Add automatic HTTPS with [Caddy]
-- [x] Add log draining service [Dozzle]
-- [x] Add load balancer for web services w/ [Caddy]
-- [ ] Persist Dozzle logs for 30 days
-- [ ] Add logical backup service for [PostgreSQL]
-- [ ] Add message broker service (e.g. RabbitMQ)
-- [ ] Add monitoring container monitoring
-- [ ] Add monitoring for data stores
-
 [caddy]: https://caddyserver.com/
 [distroless]: https://github.com/GoogleContainerTools/distroless
-[dozzle]: http://dozzle.dev/
-[nodejs]: https://nodejs.org/
 [postgresql]: https://www.postgresql.org/
-[python]: https://www.python.org/
 [redis]: https://redis.io/
 [uv]: https://docs.astral.sh/uv/
