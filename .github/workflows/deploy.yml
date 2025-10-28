@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   container:
+    if: github.repository != 'codingjoe/freePaaS'
     name: Deploy production containers
     runs-on: ubuntu-latest
     environment:
@@ -17,9 +18,12 @@ jobs:
     concurrency: production
     steps:
       - uses: actions/checkout@v5
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - run: |
           docker context create production --description "Production Server" --docker \
-          "host=ssh://{{ secrets.DOCKER_PRODUCTION_SSH_USER }}}@{{ secrets.DOCKER_PRODUCTION_SSH_HOST }}"
+          "host=ssh://${{ secrets.DOCKER_PRODUCTION_SSH_USER }}@${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}"
       - run: docker compose -f compose.production.yaml up -d --build --remove-orphans
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}

@@ -20,5 +20,12 @@ printf "Enter the hostname for your production environment (e.g., example.com): 
 read -r hostname
 echo "$hostname" gh variable set HOSTNAME --env production
 
+# Create SSH_PRIVATE_KEY
+KEY_PATH="$(mktemp -d)"
+ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${KEY_PATH}/deploy_key" -N ""
+gh secret set SSH_PRIVATE_KEY --env production < "${KEY_PATH}/deploy_key"
+gh secret set SSH_PUBLIC_KEY --env production < "${KEY_PATH}/deploy_key.pub"
+ssh-copy-id -i "${KEY_PATH}/deploy_key.pub" "${hostname}"
+
 echo "Done! Finally setup your Admin user here: https://id.${hostname}/setup"
 open "https://id.${hostname}/setup"
