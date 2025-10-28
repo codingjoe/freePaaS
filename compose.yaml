@@ -18,7 +18,6 @@ services:
       - redis:/bitnami/redis/data
     restart: unless-stopped
     environment:
-      ALLOW_EMPTY_PASSWORD: yes
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]

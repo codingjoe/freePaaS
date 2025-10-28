@@ -28,8 +28,8 @@ FROM gcr.io/distroless/cc:nonroot AS development
 COPY --from=build /dpkg /
 
 # Copy Node dependencies
-COPY --from=build --chown=nodejs:nodejs /opt/nodejs /opt/nodejs
-COPY --from=build --chown=nodejs:nodejs /app/node_modules /opt/node_modules
+COPY --from=build --chown=root:root /opt/nodejs /opt/nodejs
+COPY --from=build --chown=root:root /app/node_modules /opt/node_modules
 
 ENV NODE_PATH=/opt/node_modules
 ENV PATH="/opt/nodejs/bin:$PATH"

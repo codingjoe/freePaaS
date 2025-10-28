@@ -28,8 +28,8 @@ FROM gcr.io/distroless/cc:nonroot AS development
 COPY --from=build /dpkg /
 
 # Copy Python dependencies
-COPY --from=build --chown=python:python /opt/python /opt/python
-COPY --from=build --chown=app:app /app/.venv /opt/venv
+COPY --from=build --chown=root:root /opt/python /opt/python
+COPY --from=build --chown=root:root /app/.venv /opt/venv
 
 # Create the virtual environment
 ENV VIRTUAL_ENV=/opt/venv
