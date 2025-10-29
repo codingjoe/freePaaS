@@ -1,7 +1,0 @@
-FROM caddy:2.10.0-alpine
-
-ENV HOSTNAME=localhost
-
-ARG TZ=UTC
-ENV TZ=$TZ
-COPY ./containers/caddy/Caddyfile /etc/caddy/Caddyfile
