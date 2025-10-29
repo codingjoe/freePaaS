@@ -1,25 +1,15 @@
 services:
-  pocket-id:
-    container_name: pocket-id
-    image: ghcr.io/pocket-id/pocket-id:v1.14.0
+  oauth2-proxy:
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    hostname: oauth2-proxy
     restart: unless-stopped
-    environment:
-      LOG_JSON: true
-      TRUST_PROXY: true
-      APP_URL: "https://id.${HOSTNAME:-localhost}"
-      INTERNAL_APP_URL: "http://pocket-id:1411"
+    command: --github-user=codingjoe --reverse-proxy=true --provider=github --client-id ${GITHUB_CLIENT_ID} --client-secret ${GITHUB_CLIENT_SECRET} --cookie-secret ${OAUTH2_PROXY_COOKIE_SECRET} --cookie-secure=true --email-domain=* --upstream=http://dozzle:8080 --http-address=http://0.0.0.0:4180 --whitelist-domain=.${HOSTNAME}
+    depends_on:
+      dozzle:
+        condition: service_healthy
     networks:
-      - lan
-    volumes:
-      - pocket-id:/app/data
-    deploy:
-      mode: global
-    healthcheck:
-      test: ["CMD", "/app/pocket-id", "healthcheck"]
-      interval: 1m30s
-      timeout: 5s
-      retries: 2
-      start_period: 10s
+      - oauth2-proxy
   dozzle:
     container_name: dozzle
     image: amir20/dozzle:v8.14.6
@@ -27,7 +17,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - lan
+      - oauth2-proxy
       - wan # for gravatar
     environment:
       DOZZLE_AUTH_PROVIDER: forward-proxy
@@ -80,10 +70,8 @@ services:
     depends_on:
       web:
         condition: service_started
-      dozzle:
+      oauth2-proxy:
         condition: service_started
-      pocket-id:
-        condition: service_healthy
     cap_add:
       - NET_ADMIN
     ports:
@@ -97,6 +85,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - lan
+      - oauth2-proxy
       - wan
     env_file:
       - .env
@@ -110,6 +99,9 @@ volumes:
   caddy:
   pocket-id:
 networks:
+  oauth2-proxy:
+    driver: bridge
+    internal: true
   lan:
     driver: bridge
     internal: true

@@ -13,7 +13,7 @@ https://dozzle.{$HOSTNAME} {
 	# Requests to /oauth2/* are proxied to oauth2-proxy without authentication.
 	# You can't use `reverse_proxy /oauth2/* oauth2-proxy.internal:4180` here because the reverse_proxy directive has lower precedence than the handle directive.
 	handle /oauth2/* {
-		reverse_proxy http://oauth2-proxy:4180 {
+		reverse_proxy oauth2-proxy.internal:4180 {
 			# oauth2-proxy requires the X-Real-IP and X-Forwarded-{Proto,Host,Uri} headers.
 			# The reverse_proxy directive automatically sets X-Forwarded-{For,Proto,Host} headers.
 			header_up X-Real-IP {remote_host}
@@ -23,7 +23,7 @@ https://dozzle.{$HOSTNAME} {
 
 	# Requests to other paths are first processed by oauth2-proxy for authentication.
 	handle {
-		forward_auth http://oauth2-proxy:4180 {
+		forward_auth oauth2-proxy.internal:4180 {
 			uri /oauth2/auth
 
 			# oauth2-proxy requires the X-Real-IP and X-Forwarded-{Proto,Host,Uri} headers.
