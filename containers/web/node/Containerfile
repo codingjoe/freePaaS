@@ -1,18 +1,18 @@
-FROM debian:bookworm AS build
+FROM ghcr.io/astral-sh/uv:0.9.5-trixie-slim AS build
 LABEL authors="codingjoe"
+
+# Install dependencies
+COPY ../../../Aptfile /tmp
+RUN cd /tmp && apt-get update && cat Aptfile | xargs apt-get download \
+    && mkdir -p /dpkg && \
+    for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
+
+RUN apt install -y curl git build-essential
 
 ENV N_PREFIX=/opt/nodejs
 ENV PATH=$N_PREFIX/bin:$PATH
 ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
-
-# Install dependencies
-COPY ../../../Aptfile /tmp
-RUN cd /tmp && apt update && cat Aptfile | xargs apt download \
-    && mkdir -p /dpkg && \
-    for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
-
-RUN apt install -y curl git build-essential
 
 WORKDIR /app
 COPY ../../../.nvmrc /app/.nvmrc
