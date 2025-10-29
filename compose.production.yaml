@@ -97,7 +97,6 @@ volumes:
   postgres:
   redis:
   caddy:
-  pocket-id:
 networks:
   oauth2-proxy:
     driver: bridge
