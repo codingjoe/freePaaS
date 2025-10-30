@@ -7,7 +7,7 @@ RUN cd /tmp && apt-get update && cat Aptfile | xargs apt-get download \
     && mkdir -p /dpkg && \
     for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
 
-RUN apt install -y curl git build-essential
+RUN apt-get install -y curl git build-essential
 
 ENV N_PREFIX=/opt/nodejs
 ENV PATH=$N_PREFIX/bin:$PATH
