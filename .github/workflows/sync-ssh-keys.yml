@@ -1,0 +1,112 @@
+name: Sync SSH Keys
+on:
+  schedule:
+    - cron: '0 * * * *' # Sync hourly
+  workflow_dispatch: # Allow manual trigger
+concurrency:
+  group: sync-ssh-keys
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  sync-keys:
+    name: Sync SSH keys to production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Get repository collaborators
+        id: get-collaborators
+        run: |
+          echo "Fetching collaborators for ${{ github.repository }}"
+
+          # Get all collaborators with push access or higher
+          collaborators=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/collaborators" \
+            --jq '.[] | select(.permissions.push == true or .permissions.admin == true) | .login')
+
+          if [ -z "$collaborators" ]; then
+            echo "Error: No collaborators found with push/admin access"
+            exit 1
+          fi
+
+          echo "Found collaborators:"
+          echo "$collaborators"
+
+          # Save to file
+          echo "$collaborators" > /tmp/collaborators.txt
+      - name: Fetch SSH keys for collaborators
+        id: fetch-keys
+        run: |
+          # Initialize authorized_keys file
+          > /tmp/authorized_keys
+
+          # Read collaborators and fetch their SSH keys
+          while IFS= read -r username; do
+            if [ -n "$username" ]; then
+              echo "Fetching SSH keys for $username..."
+
+              # Fetch SSH keys from GitHub
+              keys=$(gh api \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/users/$username/keys" \
+                --jq '.[].key' 2>/dev/null || true)
+
+              if [ -n "$keys" ]; then
+                echo "# SSH keys for GitHub user: $username" >> /tmp/authorized_keys
+                # Add each key with command restriction
+                while IFS= read -r key; do
+                  if [ -n "$key" ]; then
+                    echo "command=\"docker system dial-stdio\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $key" >> /tmp/authorized_keys
+                  fi
+                done <<< "$keys"
+                echo "" >> /tmp/authorized_keys
+              else
+                echo "No SSH keys found for $username"
+              fi
+            fi
+          done < /tmp/collaborators.txt
+
+          # Validate that we have at least one key
+          if [ ! -s /tmp/authorized_keys ]; then
+            echo "Error: No SSH keys found for any collaborators"
+            exit 1
+          fi
+
+          echo "Generated authorized_keys file:"
+          cat /tmp/authorized_keys
+
+          # Count keys
+          key_count=$(grep -c "^command=" /tmp/authorized_keys || true)
+          echo "Total SSH keys to sync: $key_count"
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Upload authorized_keys to remote host
+        env:
+          SSH_USER: ${{ secrets.DOCKER_PRODUCTION_SSH_USER }}
+          SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: |
+          # Add the SSH_PUBLIC_KEY to the authorized_keys file
+          if [ -n "$SSH_PUBLIC_KEY" ]; then
+            echo "# Deployment key" >> /tmp/authorized_keys
+            echo "command=\"docker system dial-stdio\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $SSH_PUBLIC_KEY" >> /tmp/authorized_keys
+            echo "" >> /tmp/authorized_keys
+          fi
+
+          # Write directly to remote file
+          cat /tmp/authorized_keys | ssh "$SSH_USER@$SSH_HOST" -T "sudo tee /home/docker/.ssh/authorized_keys > /dev/null"
+
+          echo "✓ SSH keys synced to docker user on $SSH_HOST"
+      - name: Verify authorized_keys
+        env:
+          SSH_USER: ${{ secrets.DOCKER_PRODUCTION_SSH_USER }}
+          SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
+        run: |
+          echo "Current authorized_keys on remote host:"
+          ssh "$SSH_USER@$SSH_HOST" "sudo cat /home/docker/.ssh/authorized_keys"
