@@ -21,7 +21,7 @@ jobs:
         id: get-collaborators
         run: |
           echo "::group::Fetching collaborators"
-          echo "::notice::Fetching collaborators for ${{ github.repository }}"
+          echo "::debug::Fetching collaborators for ${{ github.repository }}"
 
           # Get all collaborators with push access or higher
           collaborators=$(gh api \
@@ -35,14 +35,14 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::Found collaborators:"
+          echo "::debug::Found collaborators:"
           echo "$collaborators"
 
           # Save to file
           echo "$collaborators" > /tmp/collaborators.txt
 
           collaborator_count=$(echo "$collaborators" | wc -l)
-          echo "::notice::Total collaborators with push/admin access: $collaborator_count"
+          echo "::debug::Total collaborators with push/admin access: $collaborator_count"
           echo "::endgroup::"
       - name: Fetch SSH keys for collaborators
         id: fetch-keys
@@ -65,7 +65,7 @@ jobs:
                 --jq '.[].key' 2>/dev/null || true)
               if [ -n "$keys" ]; then
                 key_count=$(echo "$keys" | wc -l)
-                echo "::notice::Found $key_count SSH key(s) for $username"
+                echo "::debug::Found $key_count SSH key(s) for $username"
 
                 # Add each key with command restriction
                 while IFS= read -r key; do
@@ -86,12 +86,12 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::Generated authorized_keys file:"
+          echo "::debug::Generated authorized_keys file:"
           cat /tmp/authorized_keys
 
           # Count keys
           key_count=$(grep -c "^command=" /tmp/authorized_keys || true)
-          echo "::notice::Total SSH keys to sync: $key_count"
+          echo "::debug::Total SSH keys to sync: $key_count"
           echo "::endgroup::"
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
@@ -104,7 +104,7 @@ jobs:
           SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
         run: |
           echo "::group::Uploading SSH keys to remote host"
-          echo "::notice::Syncing SSH keys to $SSH_USER@$SSH_HOST"
+          echo "::debug::Syncing SSH keys to $SSH_USER@$SSH_HOST"
 
           # Write directly to remote file
           cat /tmp/authorized_keys | ssh "$SSH_USER@$SSH_HOST" -T "sudo tee /home/docker/.ssh/authorized_keys > /dev/null"
@@ -117,7 +117,7 @@ jobs:
           SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
         run: |
           echo "::group::Verifying authorized_keys on remote host"
-          echo "::notice::Current authorized_keys on remote host:"
+          echo "::debug::Current authorized_keys on remote host:"
           ssh "$SSH_USER@$SSH_HOST" "sudo cat /home/docker/.ssh/authorized_keys"
 
           remote_key_count=$(ssh "$SSH_USER@$SSH_HOST" "sudo grep -c '^command=' /home/docker/.ssh/authorized_keys" || true)
