@@ -20,7 +20,8 @@ jobs:
       - name: Get repository collaborators
         id: get-collaborators
         run: |
-          echo "Fetching collaborators for ${{ github.repository }}"
+          echo "::group::Fetching collaborators"
+          echo "::notice::Fetching collaborators for ${{ github.repository }}"
 
           # Get all collaborators with push access or higher
           collaborators=$(gh api \
@@ -30,25 +31,31 @@ jobs:
             --jq '.[] | select(.permissions.push == true or .permissions.admin == true) | .login')
 
           if [ -z "$collaborators" ]; then
-            echo "Error: No collaborators found with push/admin access"
+            echo "::error::No collaborators found with push/admin access"
             exit 1
           fi
 
-          echo "Found collaborators:"
+          echo "::notice::Found collaborators:"
           echo "$collaborators"
 
           # Save to file
           echo "$collaborators" > /tmp/collaborators.txt
+
+          collaborator_count=$(echo "$collaborators" | wc -l)
+          echo "::notice::Total collaborators with push/admin access: $collaborator_count"
+          echo "::endgroup::"
       - name: Fetch SSH keys for collaborators
         id: fetch-keys
         run: |
+          echo "::group::Fetching SSH keys"
+
           # Initialize authorized_keys file
           > /tmp/authorized_keys
 
           # Read collaborators and fetch their SSH keys
           while IFS= read -r username; do
             if [ -n "$username" ]; then
-              echo "Fetching SSH keys for $username..."
+              echo "::debug::Fetching SSH keys for $username..."
 
               # Fetch SSH keys from GitHub
               keys=$(gh api \
@@ -57,6 +64,9 @@ jobs:
                 "/users/$username/keys" \
                 --jq '.[].key' 2>/dev/null || true)
               if [ -n "$keys" ]; then
+                key_count=$(echo "$keys" | wc -l)
+                echo "::notice::Found $key_count SSH key(s) for $username"
+
                 # Add each key with command restriction
                 while IFS= read -r key; do
                   if [ -n "$key" ]; then
@@ -65,23 +75,24 @@ jobs:
                 done <<< "$keys"
                 echo "" >> /tmp/authorized_keys
               else
-                echo "No SSH keys found for $username"
+                echo "::warning::No SSH keys found for $username"
               fi
             fi
           done < /tmp/collaborators.txt
 
           # Validate that we have at least one key
           if [ ! -s /tmp/authorized_keys ]; then
-            echo "Error: No SSH keys found for any collaborators"
+            echo "::error::No SSH keys found for any collaborators"
             exit 1
           fi
 
-          echo "Generated authorized_keys file:"
+          echo "::notice::Generated authorized_keys file:"
           cat /tmp/authorized_keys
 
           # Count keys
           key_count=$(grep -c "^command=" /tmp/authorized_keys || true)
-          echo "Total SSH keys to sync: $key_count"
+          echo "::notice::Total SSH keys to sync: $key_count"
+          echo "::endgroup::"
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
         with:
@@ -92,14 +103,23 @@ jobs:
           SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
           SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
         run: |
+          echo "::group::Uploading SSH keys to remote host"
+          echo "::notice::Syncing SSH keys to $SSH_USER@$SSH_HOST"
+
           # Write directly to remote file
           cat /tmp/authorized_keys | ssh "$SSH_USER@$SSH_HOST" -T "sudo tee /home/docker/.ssh/authorized_keys > /dev/null"
 
-          echo "✓ SSH keys synced to docker user on $SSH_HOST"
+          echo "::notice::✓ SSH keys synced to docker user on $SSH_HOST"
+          echo "::endgroup::"
       - name: Verify authorized_keys
         env:
           SSH_USER: ${{ secrets.DOCKER_PRODUCTION_SSH_USER }}
           SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
         run: |
-          echo "Current authorized_keys on remote host:"
+          echo "::group::Verifying authorized_keys on remote host"
+          echo "::notice::Current authorized_keys on remote host:"
           ssh "$SSH_USER@$SSH_HOST" "sudo cat /home/docker/.ssh/authorized_keys"
+
+          remote_key_count=$(ssh "$SSH_USER@$SSH_HOST" "sudo grep -c '^command=' /home/docker/.ssh/authorized_keys" || true)
+          echo "::notice::Total keys on remote host: $remote_key_count"
+          echo "::endgroup::"
