@@ -99,11 +99,88 @@ echo "$oauth_client_secret" gh secret set GITHUB_CLIENT_SECRET --env production
 # Create SSH_PRIVATE_KEY
 ssh_key_path="$(mktemp -d)"
 ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
+
+echo "Creating github user with sudo privileges on ${hostname}..."
+ssh -T "${ssh_username}@${hostname}" << 'ENDSSH'
+set -e
+
+echo "Setting up github user..."
+if ! id github >/dev/null 2>&1; then
+  sudo useradd -m -d /home/github -s /bin/bash github
+  echo "Created github user."
+else
+  echo "github user already exists."
+fi
+
+echo "Granting sudo privileges to github user..."
+echo "github ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/github > /dev/null
+sudo chmod 440 /etc/sudoers.d/github
+
+echo "Creating SSH directory for github user..."
+sudo mkdir -p /home/github/.ssh
+sudo chmod 700 /home/github/.ssh
+sudo chown github:github /home/github/.ssh
+
+echo "github user configured successfully."
+ENDSSH
+
+echo "Setting up SSH key for github user..."
+ssh_public_key=$(cat "${ssh_key_path}/deploy_key.pub")
+# shellcheck disable=SC2087
+ssh -T "${ssh_username}@${hostname}" << ENDSSH
+set -e
+echo "${ssh_public_key} github" | sudo tee /home/github/.ssh/authorized_keys > /dev/null
+sudo chmod 600 /home/github/.ssh/authorized_keys
+sudo chown github:github /home/github/.ssh/authorized_keys
+echo "SSH key configured for github user."
+ENDSSH
+
+echo "Installing Podman and setting up collaborator user on ${hostname}..."
+ssh -T "github@${hostname}" -i "${ssh_key_path}/deploy_key" -o StrictHostKeyChecking=no << 'ENDSSH'
+set -e
+
+echo "Checking if Podman is installed..."
+if ! command -v podman >/dev/null 2>&1; then
+  echo "Installing Podman..."
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq podman podman-docker
+  echo "Podman installed successfully."
+else
+  echo "Podman is already installed."
+fi
+
+echo "Enabling Podman socket..."
+sudo systemctl enable --now podman.socket || true
+
+echo "Setting up collaborator user..."
+if ! id collaborator >/dev/null 2>&1; then
+  sudo useradd -r -s /usr/sbin/nologin -m -d /home/collaborator collaborator
+  echo "Created collaborator user."
+else
+  echo "collaborator user already exists."
+fi
+
+echo "Configuring Podman access for github user..."
+sudo usermod -aG podman github || true
+sudo loginctl enable-linger github || true
+
+echo "Configuring Podman access for collaborator user..."
+sudo usermod -aG podman collaborator || true
+sudo loginctl enable-linger collaborator || true
+
+echo "Creating SSH directory for collaborator user..."
+sudo mkdir -p /home/collaborator/.ssh
+sudo chmod 700 /home/collaborator/.ssh
+sudo chown -R collaborator:collaborator /home/collaborator/.ssh
+
+echo "Podman and users configured successfully."
+ENDSSH
+
 gh secret set SSH_PRIVATE_KEY --env production < "${ssh_key_path}/deploy_key"
 gh secret set SSH_PUBLIC_KEY --env production < "${ssh_key_path}/deploy_key.pub"
-ssh-copy-id -i "${ssh_key_path}/deploy_key.pub" "${ssh_username}@${hostname}"
 
-# Trigger deployment workflow
+echo "Syncing collaborator SSH keys..."
+gh workflow run sync-ssh-keys.yml --ref main
 echo "Triggering deployment workflow..."
 gh workflow run deploy.yml --ref main
 
