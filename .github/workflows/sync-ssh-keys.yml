@@ -97,29 +97,29 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Pin known hosts
+        run: |
+          echo "::group::Pinning known hosts"
+          echo "${{ vars.SSH_KNOW_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "::debug::Known hosts updated:"
+          cat ~/.ssh/known_hosts
+          echo "::endgroup::"
       - name: Upload authorized_keys to remote host
-        env:
-          SSH_USER: ${{ secrets.DOCKER_PRODUCTION_SSH_USER }}
-          SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
-          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
         run: |
           echo "::group::Uploading SSH keys to remote host"
           echo "::debug::Syncing SSH keys to $SSH_USER@$SSH_HOST"
 
           # Write directly to remote file
-          scp /tmp/authorized_keys $SSH_USER@$SSH_HOST:/tmp/authorized_keys && ssh $SSH_USER@$SSH_HOST "sudo mv /tmp/authorized_keys /home/collaborator/.ssh/authorized_keys && sudo chown collaborator:collaborator /home/collaborator/.ssh/authorized_keys && sudo chmod 600 /home/docker/.ssh/authorized_keys"
+          ssh "github@${{ vars.HOSTNAME }}" < "echo $(cat /tmp/authorized_keys) | sudo tee /home/collaborator/.ssh/authorized_keys"
 
-          echo "::notice::✓ SSH keys synced to docker user on $SSH_HOST"
+          echo "::notice::✓ SSH keys synced to collaborator user on $SSH_HOST"
           echo "::endgroup::"
       - name: Verify authorized_keys
-        env:
-          SSH_USER: ${{ secrets.DOCKER_PRODUCTION_SSH_USER }}
-          SSH_HOST: ${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}
         run: |
           echo "::group::Verifying authorized_keys on remote host"
           echo "::debug::Current authorized_keys on remote host:"
-          ssh "$SSH_USER@$SSH_HOST" "sudo cat /home/docker/.ssh/authorized_keys"
+          ssh "github@${{ vars.HOSTNAME }}" < "sudo cat /home/collaborator/.ssh/authorized_keys"
 
-          remote_key_count=$(ssh "$SSH_USER@$SSH_HOST" "sudo grep -c '^command=' /home/docker/.ssh/authorized_keys" || true)
+          remote_key_count=$(ssh "github@${{ vars.HOSTNAME }}" < "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
           echo "::notice::Total keys on remote host: $remote_key_count"
           echo "::endgroup::"

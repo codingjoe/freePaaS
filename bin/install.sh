@@ -180,6 +180,8 @@ sudo loginctl enable-linger collaborator || true
 echo "Creating SSH directory for collaborator user..."
 sudo mkdir -p /home/collaborator/.ssh
 sudo chmod 700 /home/collaborator/.ssh
+sudo touch /home/collaborator/.ssh/authorized_keys
+sudo chmod 600 /home/collaborator/.ssh/authorized_keys
 sudo chown -R collaborator:collaborator /home/collaborator/.ssh
 
 echo "Podman and users configured successfully."
