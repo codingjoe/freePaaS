@@ -23,9 +23,6 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - run: |
           docker context create production --description "Production Server" --docker \
-          "host=ssh://${{ secrets.DOCKER_PRODUCTION_SSH_USER }}@${{ secrets.DOCKER_PRODUCTION_SSH_HOST }}"
+          "host=ssh://github@${{ vars.HOSTNAME }}"
       - run: docker compose -f compose.production.yaml up -d --build --remove-orphans
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          TARGET_ENV: ${{ job.environment.name }}
+        env: ${{ secrets || vars }}

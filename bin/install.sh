@@ -99,12 +99,11 @@ uv sync --dev
 
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
-python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set POSTGRES_PASSWORD --env production
+python -c "import secrets; print(secrets.token_urlsafe())" | gh variable set POSTGRES_PASSWORD --env production
 python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
-echo "$hostname" gh variable set hostname --env production
-echo "$ssh_username" gh variable set SSH_USERNAME --env production
-echo "$oauth_client_id" gh secret set GITHUB_CLIENT_ID --env production
-echo "$oauth_client_secret" gh secret set GITHUB_CLIENT_SECRET --env production
+gh variable set HOSTNAME --env production < "$hostname"
+gh variable set GITHUB_CLIENT_ID --env production < "$oauth_client_id"
+gh secret set GITHUB_CLIENT_SECRET --env production < "$oauth_client_secret"
 # Create SSH_PRIVATE_KEY
 ssh_key_path="$(mktemp -d)"
 ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
@@ -188,7 +187,8 @@ echo "Podman and users configured successfully."
 ENDSSH
 
 gh secret set SSH_PRIVATE_KEY --env production < "${ssh_key_path}/deploy_key"
-gh secret set SSH_PUBLIC_KEY --env production < "${ssh_key_path}/deploy_key.pub"
+gh variable set SSH_PUBLIC_KEY --env production < "${ssh_key_path}/deploy_key.pub"
+gh variable set SSH_KNOW_HOSTS --env production < "$(ssh-keyscan "${hostname}")"
 
 echo "Syncing collaborator SSH keys..."
 gh workflow run sync-ssh-keys.yml --ref main

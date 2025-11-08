@@ -38,8 +38,10 @@ jobs:
           echo "::debug::Found collaborators:"
           echo "$collaborators"
 
-          # Save to file
-          echo "$collaborators" > /tmp/collaborators.txt
+          # Save to output
+          echo "collaborators<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$collaborators" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
           collaborator_count=$(echo "$collaborators" | wc -l)
           echo "::debug::Total collaborators with push/admin access: $collaborator_count"
@@ -49,8 +51,8 @@ jobs:
         run: |
           echo "::group::Fetching SSH keys"
 
-          # Initialize authorized_keys file
-          > /tmp/authorized_keys
+          # Initialize authorized_keys variable
+          authorized_keys=""
 
           # Read collaborators and fetch their SSH keys
           while IFS= read -r username; do
@@ -70,28 +72,36 @@ jobs:
                 # Add each key with command restriction
                 while IFS= read -r key; do
                   if [ -n "$key" ]; then
-                    echo "command=\"docker system dial-stdio\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $key $username" >> /tmp/authorized_keys
+                    authorized_keys+="command=\"docker system dial-stdio\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $key $username\n"
                   fi
                 done <<< "$keys"
-                echo "" >> /tmp/authorized_keys
+                authorized_keys+="\n"
               else
                 echo "::warning::No SSH keys found for $username"
               fi
             fi
-          done < /tmp/collaborators.txt
+          done <<< "${{ steps.get-collaborators.outputs.collaborators }}"
 
           # Validate that we have at least one key
-          if [ ! -s /tmp/authorized_keys ]; then
+          if [ -z "$authorized_keys" ]; then
             echo "::error::No SSH keys found for any collaborators"
             exit 1
           fi
 
           echo "::debug::Generated authorized_keys file:"
-          cat /tmp/authorized_keys
+          echo "$authorized_keys"
 
           # Count keys
-          key_count=$(grep -c "^command=" /tmp/authorized_keys || true)
+          key_count=$(echo "$authorized_keys" | grep -c "^command=" || true)
           echo "::debug::Total SSH keys to sync: $key_count"
+
+          # Save to output
+          {
+            echo "authorized_keys<<EOF"
+            echo "$authorized_keys"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
           echo "::endgroup::"
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
@@ -105,21 +115,22 @@ jobs:
           cat ~/.ssh/known_hosts
           echo "::endgroup::"
       - name: Upload authorized_keys to remote host
+        env:
+          AUTHORIZED_KEYS: "${{ steps.fetch-keys.outputs.authorized_keys }}"
         run: |
           echo "::group::Uploading SSH keys to remote host"
-          echo "::debug::Syncing SSH keys to $SSH_USER@$SSH_HOST"
+          echo "::debug::Syncing SSH keys to ${{ vars.HOSTNAME }}"
 
           # Write directly to remote file
-          ssh "github@${{ vars.HOSTNAME }}" < "echo $(cat /tmp/authorized_keys) | sudo tee /home/collaborator/.ssh/authorized_keys"
+          echo "$AUTHORIZED_KEYS" | ssh "github@${{ vars.HOSTNAME }}" "sudo tee /home/collaborator/.ssh/authorized_keys > /dev/null"
 
-          echo "::notice::✓ SSH keys synced to collaborator user on $SSH_HOST"
           echo "::endgroup::"
       - name: Verify authorized_keys
         run: |
           echo "::group::Verifying authorized_keys on remote host"
           echo "::debug::Current authorized_keys on remote host:"
-          ssh "github@${{ vars.HOSTNAME }}" < "sudo cat /home/collaborator/.ssh/authorized_keys"
+          ssh "github@${{ vars.HOSTNAME }}" "sudo cat /home/collaborator/.ssh/authorized_keys"
 
-          remote_key_count=$(ssh "github@${{ vars.HOSTNAME }}" < "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
-          echo "::notice::Total keys on remote host: $remote_key_count"
+          remote_key_count=$(ssh "github@${{ vars.HOSTNAME }}" "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
+          echo "::notice::✓ Synced $remote_key_count SSH keys to ${{ vars.HOSTNAME }}"
           echo "::endgroup::"
