@@ -42,12 +42,11 @@ printf "Enter your GitHub username or organization name (default %s): " "$gh_use
 read -r gh_owner
 if [ -n "$gh_owner" ]; then
   gh_owner=$gh_user
-  gh_is_org=true
 fi
 
 echo "Create a new OAUTH App:"
 # Create OAUTH App
-if [ "$gh_is_org" = true ]; then
+if gh api "orgs/${gh_owner}" >/dev/null 2>&1; then
   echo "https://github.com/organizations/${gh_owner}/settings/apps"
   open "https://github.com/organizations/${gh_owner}/settings/apps"
 else

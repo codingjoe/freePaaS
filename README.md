@@ -17,7 +17,7 @@ No fuss automatic deployments straight form GitHub.
 ## Getting Started
 
 ```
-curl -fsSL https://raw.githubusercontent.com/codingjoe/python-container/main/bin/install.sh | sh
+sh <(curl -fsSL https://raw.githubusercontent.com/codingjoe/freePaaS/main/bin/install.sh)
 ```
 
 ```bash
