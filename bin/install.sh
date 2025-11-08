@@ -99,9 +99,10 @@ uv sync --dev
 
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
+gh variable set HOSTNAME --env production < "$hostname"
 python -c "import secrets; print(secrets.token_urlsafe())" | gh variable set POSTGRES_PASSWORD --env production
 python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
-gh variable set HOSTNAME --env production < "$hostname"
+python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET --env production
 gh variable set GITHUB_CLIENT_ID --env production < "$oauth_client_id"
 gh secret set GITHUB_CLIENT_SECRET --env production < "$oauth_client_secret"
 # Create SSH_PRIVATE_KEY

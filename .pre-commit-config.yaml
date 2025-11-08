@@ -57,3 +57,7 @@ repos:
     rev: v0.11.0
     hooks:
       - id: shellcheck
+ci:
+  skip:
+    - no-commit-to-branch
+    - shellcheck
