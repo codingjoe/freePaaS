@@ -107,7 +107,7 @@ jobs:
           echo "::debug::Syncing SSH keys to $SSH_USER@$SSH_HOST"
 
           # Write directly to remote file
-          cat /tmp/authorized_keys | ssh "$SSH_USER@$SSH_HOST" -T "sudo tee /home/docker/.ssh/authorized_keys > /dev/null"
+          scp /tmp/authorized_keys $SSH_USER@$SSH_HOST:/tmp/authorized_keys && ssh $SSH_USER@$SSH_HOST "sudo mv /tmp/authorized_keys /home/collaborator/.ssh/authorized_keys && sudo chown collaborator:collaborator /home/collaborator/.ssh/authorized_keys && sudo chmod 600 /home/docker/.ssh/authorized_keys"
 
           echo "::notice::✓ SSH keys synced to docker user on $SSH_HOST"
           echo "::endgroup::"

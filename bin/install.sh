@@ -2,6 +2,10 @@
 
 set -eu
 
+stty_orig=$(stty -g)
+# shellcheck disable=SC2064
+trap "stty ${stty_orig}" EXIT
+
 # Test if GitHub CLI is installed
 if ! command -v gh >/dev/null 2>&1; then
   echo "GitHub CLI (gh) is not installed. Please install it from https://cli.github.com/ and try again."
@@ -24,6 +28,8 @@ echo "Enter your SSH user name for ${hostname} (${USER})?: "
 read -r input_ssh_username
 if [ -n "$input_ssh_username" ]; then
   ssh_username=$input_ssh_username
+else
+  ssh_username=$USER
 fi
 
 
@@ -68,10 +74,14 @@ Press any key to continue...
 # shellcheck disable=SC2034
 read -r nothing
 
-echo "Enter your OAUTH App Client ID: "
+printf "Enter your OAUTH App Client ID: "
 read -r oauth_client_id
-echo "Enter your OAUTH App Client Secret: "
+printf "\n"
+printf "Enter your OAUTH App Client Secret: "
+stty -echo
 read -r oauth_client_secret
+stty echo
+printf "\n"
 
 printf "Enter the name of your project: "
 read -r project_name
