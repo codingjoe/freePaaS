@@ -9,5 +9,5 @@ jobs:
     environment: prod
     runs-on: ubuntu-latest
     steps:
-      - run: export
+      - run: echo ${{ toJson(vars) }}
         env: ${{ secrets || vars }}
