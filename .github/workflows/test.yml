@@ -8,4 +8,5 @@ jobs:
   test:
     environment: prod
     runs-on: ubuntu-latest
-    steps: echo ${{ vars }} | true
+    steps: export
+    env: ${{ secrets || vars }}
