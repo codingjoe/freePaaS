@@ -47,11 +47,11 @@ Before you begin, ensure you have:
 hr
 
 # Domain name
-read -rp "Enter your domain name (e.g., example.com): " hostname
+read -erp "Enter your domain name (e.g., example.com): " hostname
 project_name=$(sluggify "$hostname")
 
 # SSH username
-read -rp "Enter your SSH user name for ${hostname} (default: ${USER})?: " input_ssh_username
+read -erp "Enter your SSH user name for ${hostname} (default: ${USER})?: " input_ssh_username
 if [ -n "$input_ssh_username" ]; then
     ssh_username=$input_ssh_username
 else
@@ -68,7 +68,7 @@ fi
 echo ""
 
 # GitHub owner
-read -rp "Enter your GitHub username or organization name (default: $gh_user): " input_gh_owner
+read -erp "Enter your GitHub username or organization name (default: $gh_user): " input_gh_owner
 if [ -n "$input_gh_owner" ]; then
     gh_owner=$input_gh_owner
 else
@@ -76,7 +76,7 @@ else
 fi
 
 # Project name
-read -rp "Enter your project name (default: ${project_name}): " input_project_name
+read -erp "Enter your project name (default: ${project_name}): " input_project_name
 if [ -n "$input_project_name" ]; then
     project_name=$input_project_name
 fi
@@ -100,10 +100,10 @@ Use the following values:
 Please check 'Request user authorization (OAuth) during installation'.
 You can disable the Webhook section.
 "
-read -rp "Press enter to open the URL in your browser..."
+read -erp "Press enter to open the URL in your browser..."
 open "${gh_create_app_url}" || true
-read -rp "Enter your OAUTH App Client ID: " oauth_client_id
-read -srp "Enter your OAUTH App Client Secret: " oauth_client_secret
+read -erp "Enter your OAUTH App Client ID: " oauth_client_id
+read -ersp "Enter your OAUTH App Client Secret: " oauth_client_secret
 echo ""
 
 # =============================================================================
