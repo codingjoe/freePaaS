@@ -3,7 +3,12 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      environment:
+        description: 'Target environment for deployment'
+        required: true
+        default: 'production'
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
