@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   container:
-    if: github.repository != 'codingjoe/freePaaS'
+    if: vars.SSH_HOSTNAME != ''
     name: Deploy production containers
     runs-on: ubuntu-latest
     environment:

@@ -15,7 +15,7 @@ permissions:
   contents: read
 jobs:
   sync-keys:
-    if: github.repository != 'codingjoe/freePaaS'
+    if: vars.SSH_HOSTNAME != ''
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
     env:
