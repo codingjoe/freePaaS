@@ -146,17 +146,20 @@ echo "Creating GitHub repository from template..."
 gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
 cd "${project_name}" || exit 1
 
+echo "Configuring repository workflow secrets on GitHub..."
+gh variable set HOSTNAME < "$hostname"
+gh variable set GITHUB_CLIENT_ID < "$oauth_client_id"
+gh secret set GITHUB_CLIENT_SECRET < "$oauth_client_secret"
+gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
+gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
+gh variable set SSH_KNOW_HOSTS < "$(ssh-keyscan "${hostname}")"
+
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
 gh variable set HOSTNAME --env production < "$hostname"
 python -c "import secrets; print(secrets.token_urlsafe())" | gh variable set POSTGRES_PASSWORD --env production
 python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
-python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET --env production
-gh variable set GITHUB_CLIENT_ID --env production < "$oauth_client_id"
-gh secret set GITHUB_CLIENT_SECRET --env production < "$oauth_client_secret"
-gh secret set SSH_PRIVATE_KEY --env production < "${ssh_key_path}/deploy_key"
-gh variable set SSH_PUBLIC_KEY --env production < "${ssh_key_path}/deploy_key.pub"
-gh variable set SSH_KNOW_HOSTS --env production < "$(ssh-keyscan "${hostname}")"
+python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET production
 
 echo "Syncing collaborator SSH keys..."
 gh workflow run sync-ssh-keys.yml --ref main

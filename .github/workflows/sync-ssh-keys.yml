@@ -18,8 +18,6 @@ jobs:
     if: github.repository != 'codingjoe/freePaaS'
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.environment }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
-      # url: Add your URL here if needed, (can't include secrets)
+      url: https://${{ vars.HOSTNAME }}/
     concurrency: production
     steps:
       - uses: actions/checkout@v5
