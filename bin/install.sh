@@ -148,8 +148,9 @@ headline "Setting your GitHub environment"
 echo -en "${action}"
 
 echo "Configuring repository workflow secrets on GitHub..."
-gh variable set GITHUB_CLIENT_ID --body "$oauth_client_id"
-gh secret set GITHUB_CLIENT_SECRET --body "$oauth_client_secret"
+gh variable set OAUTH_CLIENT_ID --body "$oauth_client_id"
+gh secret set OAUTH_CLIENT_SECRET --body "$oauth_client_secret"
+python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET
 gh variable set SSH_HOSTNAME --body "$hostname"
 gh variable set SSH_KNOW_HOSTS --body "$(ssh-keyscan "${hostname}")"
 gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
@@ -160,7 +161,6 @@ gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
 gh variable set HOSTNAME --env production < "$hostname"
 python -c "import secrets; print(secrets.token_urlsafe())" | gh variable set POSTGRES_PASSWORD --env production
 python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
-python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET production
 
 echo "Syncing collaborator SSH keys..."
 gh workflow run sync-ssh-keys.yml --ref main
