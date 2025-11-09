@@ -130,6 +130,11 @@ echo "Press any key to start the installation, or Ctrl+C to cancel..."
 read -r confirm
 
 # =============================================================================
+headline "Creating GitHub repository from template"
+gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
+cd "${project_name}" || exit 1
+
+# =============================================================================
 headline "Setting up remote host"
 
 echo -en "${action}"
@@ -138,13 +143,9 @@ ssh -T "${ssh_username}@${hostname}" "sh -s -- '${ssh_public_key}'" < "bin/setup
 echo -en "${fin}"
 
 # =============================================================================
-headline "Setting up your GitHub repository"
+headline "Setting your GitHub environment"
 
 echo -en "${action}"
-
-echo "Creating GitHub repository from template..."
-gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
-cd "${project_name}" || exit 1
 
 echo "Configuring repository workflow secrets on GitHub..."
 gh variable set GITHUB_CLIENT_ID < "$oauth_client_id"
