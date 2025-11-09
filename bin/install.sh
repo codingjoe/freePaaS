@@ -147,12 +147,12 @@ gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
 cd "${project_name}" || exit 1
 
 echo "Configuring repository workflow secrets on GitHub..."
-gh variable set HOSTNAME < "$hostname"
 gh variable set GITHUB_CLIENT_ID < "$oauth_client_id"
 gh secret set GITHUB_CLIENT_SECRET < "$oauth_client_secret"
-gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
-gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
+gh variable set SSH_HOSTNAME < "$hostname"
 gh variable set SSH_KNOW_HOSTS < "$(ssh-keyscan "${hostname}")"
+gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
+gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
 
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
