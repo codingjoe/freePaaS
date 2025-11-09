@@ -18,7 +18,7 @@ jobs:
     name: Deploy production containers
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: ${{ inputs.environment }}
       # url: Add your URL here if needed, (can't include secrets)
     concurrency: production
     steps:

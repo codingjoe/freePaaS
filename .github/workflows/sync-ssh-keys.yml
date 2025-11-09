@@ -18,7 +18,7 @@ jobs:
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: ${{ inputs.environment }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
