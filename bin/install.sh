@@ -1,139 +1,150 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -eu
+set -euo pipefail
 
-stty_orig=$(stty -g)
-# shellcheck disable=SC2064
-trap "stty ${stty_orig}" EXIT
+sluggify() {
+    # Convert a string to a slug suitable for URLs and filenames
+    echo "$1" | iconv -t "ascii//TRANSLIT" | sed -r "s/[~\^]+//g" | sed -r "s/[^a-zA-Z0-9]+/-/g" | sed -r "s/^-+\|-+$//g" | tr '[:upper:]' '[:lower:]'
+}
+
+hr () {
+    printf '\n%*s\n\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+}
+
+headline() {
+    # =-sign padded headline to whole column width
+    local len=${#1}
+    local padding=$(( ( ${COLUMNS:-$(tput cols)} - len - 2 ) / 2 ))
+    printf '\n%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+    printf '%*s %s %*s\n' "$padding" '' "$1" "$padding" ''
+    printf '%*s\n\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+}
+
+# Color codes for terminal output
+success_msg='\033[1;32m'
+action='\033[0;3m'
+info='\033[1;34m'
+error='\033[0;31m'
+fin='\033[0m'
 
 # Test if GitHub CLI is installed
 if ! command -v gh >/dev/null 2>&1; then
-  echo "GitHub CLI (gh) is not installed. Please install it from https://cli.github.com/ and try again."
-  exit 1
+    echo "GitHub CLI (gh) is not installed. Please install it from https://cli.github.com/ and try again."
+    exit 1
 fi
 
 # org or user
 gh_user=$(gh api user --jq .login)
 
-
-sluggify() {
-  echo "$1" | iconv -t "ascii//TRANSLIT" | sed -r "s/[~\^]+//g" | sed -r "s/[^a-zA-Z0-9]+/-/g" | sed -r "s/^-+\|-+$//g" | tr '[:upper:]' '[:lower:]'
-}
-
 # =============================================================================
-# STEP 1: Collect all required information
-# =============================================================================
+headline "freePaaS Installation Wizard"
 
-echo "=== Configuration Input ==="
-echo ""
+echo "
+This script will guide you through the installation of freePaaS on your server and your GitHub repository.
+Before you begin, ensure you have:
+- SSH access to your server
+- the GitHub CLI (gh) installed and authenticated"
+hr
 
 # Domain name
-echo "Enter your domain name (e.g., example.com): "
-read -r hostname
+read -rp "Enter your domain name (e.g., example.com): " hostname
 project_name=$(sluggify "$hostname")
 
 # SSH username
-echo "Enter your SSH user name for ${hostname} (${USER})?: "
-read -r input_ssh_username
+read -rp "Enter your SSH user name for ${hostname} (default: ${USER})?: " input_ssh_username
 if [ -n "$input_ssh_username" ]; then
-  ssh_username=$input_ssh_username
+    ssh_username=$input_ssh_username
 else
-  ssh_username=$USER
+    ssh_username=$USER
 fi
 
 # Verify SSH connection
 echo ""
-echo "Verifying SSH connection to ${hostname}..."
-if ! ssh -T "${ssh_username}@${hostname}" "echo 'SSH connection to ${hostname} successful.'"; then
-  echo "SSH connection to ${hostname} failed. Please ensure you can SSH into the server before proceeding."
-  exit 1
+printf "${action}Verifying SSH connection to ${info}%s${fin}... " "${hostname}"
+if ! ssh -T "${ssh_username}@${hostname}" "echo -e '${success_msg}SUCCESS!${fin}'"; then
+    echo -e "${error}SSH connection to ${hostname} failed. Please ensure you can SSH into the server before proceeding."
+    exit 1
 fi
-echo "SSH connection verified."
 echo ""
 
-# Project name
-echo "Enter your project name (${project_name}): "
-read -r input_project_name
-if [ -n "$input_project_name" ]; then
-  project_name=$input_project_name
+# GitHub owner
+read -rp "Enter your GitHub username or organization name (default: $gh_user): " input_gh_owner
+if [ -n "$input_gh_owner" ]; then
+    gh_owner=$input_gh_owner
+else
+    gh_owner=$gh_user
 fi
 
-# GitHub owner
-printf "Enter your GitHub username or organization name (default %s): " "$gh_user"
-read -r input_gh_owner
-if [ -n "$input_gh_owner" ]; then
-  gh_owner=$input_gh_owner
-else
-  gh_owner=$gh_user
+# Project name
+read -rp "Enter your project name (default: ${project_name}): " input_project_name
+if [ -n "$input_project_name" ]; then
+    project_name=$input_project_name
 fi
 
 # OAuth App setup
-echo ""
-echo "=== OAuth App Setup ==="
-echo "Create a new OAuth App at GitHub:"
+gh_create_app_url="https://github.com/settings/apps/new"
 if gh api "orgs/${gh_owner}" >/dev/null 2>&1; then
-  echo "https://github.com/organizations/${gh_owner}/settings/apps"
-  open "https://github.com/organizations/${gh_owner}/settings/apps"
-else
-  echo "https://github.com/settings/apps/new"
-  open "https://github.com/settings/apps/new"
+    gh_create_app_url="https://github.com/organizations/${gh_owner}/settings/apps"
 fi
 
-echo "
+# =============================================================================
+headline "GitHub OAuth App Setup"
+
+echo -e "
+Create a new OAuth App at GitHub: ${info}${gh_create_app_url}${fin}
 Use the following values:
-- Application name: ${project_name}
-- Homepage URL: https://${hostname}/
-- Authorization callback URL: https://dozzle.${hostname}/oauth2/github/authorization-code-callback
+- Application name: ${info}${project_name}${fin}
+- Homepage URL: ${info}https://${hostname}/${fin}
+- Authorization callback URL: ${info}https://dozzle.${hostname}/oauth2/github/authorization-code-callback${fin}
 
 Please check 'Request user authorization (OAuth) during installation'.
 You can disable the Webhook section.
-Press any key to continue...
 "
-
-# shellcheck disable=SC2034
-read -r nothing
-
-printf "Enter your OAUTH App Client ID: "
-read -r oauth_client_id
-printf "\n"
-printf "Enter your OAUTH App Client Secret: "
-stty -echo
-read -r oauth_client_secret
-stty echo
-printf "\n"
-
-# Confirm collected information
+read -rp "Press enter to open the URL in your browser..."
+open "${gh_create_app_url}" || true
+read -rp "Enter your OAUTH App Client ID: " oauth_client_id
+read -srp "Enter your OAUTH App Client Secret: " oauth_client_secret
 echo ""
-echo "=== Configuration Summary ==="
+
+# =============================================================================
+headline "SSH Key Setup"
+
+echo -en "Generating SSH key pair for deployment..."
+ssh_key_path="$(mktemp -d)"
+ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
+ssh_public_key=$(cat "${ssh_key_path}/deploy_key.pub")
+echo -e "${success_msg}SUCCESS${fin}"
+
+# =============================================================================
+headline "Please confirm the following information:"
+
 echo "Domain: ${hostname}"
 echo "SSH User: ${ssh_username}"
 echo "Project Name: ${project_name}"
 echo "GitHub Owner: ${gh_owner}"
 echo "OAuth Client ID: ${oauth_client_id}"
-echo ""
+echo "OAUTH Client Secret: *********"
+hr
 echo "Press any key to start the installation, or Ctrl+C to cancel..."
 # shellcheck disable=SC2034
 read -r confirm
 
 # =============================================================================
-# STEP 2: Execute installation
-# =============================================================================
+headline "Setting up remote host"
 
-echo ""
-echo "=== Starting Installation ==="
-echo ""
+echo -en "${action}"
+# Run remote setup script
+ssh -T "${ssh_username}@${hostname}" "sh -s -- '${ssh_public_key}'" < "bin/setup_remote_host.sh"
+echo -en "${fin}"
+
+# =============================================================================
+headline "Setting up your GitHub repository"
+
+echo -en "${action}"
 
 echo "Creating GitHub repository from template..."
 gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
 cd "${project_name}" || exit 1
-
-echo "Setting up your development environment..."
-mv .env.example .env
-if ! command -v uv >/dev/null 2>&1; then
-  echo "Installing uv..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-fi
-uv sync --dev
 
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
@@ -143,95 +154,26 @@ python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS
 python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET --env production
 gh variable set GITHUB_CLIENT_ID --env production < "$oauth_client_id"
 gh secret set GITHUB_CLIENT_SECRET --env production < "$oauth_client_secret"
-# Create SSH_PRIVATE_KEY
-ssh_key_path="$(mktemp -d)"
-ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
-
-echo "Creating github user with sudo privileges on ${hostname}..."
-ssh -T "${ssh_username}@${hostname}" << 'ENDSSH'
-set -e
-
-echo "Setting up github user..."
-if ! id github >/dev/null 2>&1; then
-  sudo useradd -m -d /home/github -s /bin/bash github
-  echo "Created github user."
-else
-  echo "github user already exists."
-fi
-
-echo "Granting sudo privileges to github user..."
-echo "github ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/github > /dev/null
-sudo chmod 440 /etc/sudoers.d/github
-
-echo "Creating SSH directory for github user..."
-sudo mkdir -p /home/github/.ssh
-sudo chmod 700 /home/github/.ssh
-sudo chown github:github /home/github/.ssh
-
-echo "github user configured successfully."
-ENDSSH
-
-echo "Setting up SSH key for github user..."
-ssh_public_key=$(cat "${ssh_key_path}/deploy_key.pub")
-# shellcheck disable=SC2087
-ssh -T "${ssh_username}@${hostname}" << ENDSSH
-set -e
-echo "${ssh_public_key} github" | sudo tee /home/github/.ssh/authorized_keys > /dev/null
-sudo chmod 600 /home/github/.ssh/authorized_keys
-sudo chown github:github /home/github/.ssh/authorized_keys
-echo "SSH key configured for github user."
-ENDSSH
-
-echo "Installing Podman and setting up collaborator user on ${hostname}..."
-ssh -T "github@${hostname}" -i "${ssh_key_path}/deploy_key" -o StrictHostKeyChecking=no << 'ENDSSH'
-set -e
-
-echo "Checking if Podman is installed..."
-if ! command -v podman >/dev/null 2>&1; then
-  echo "Installing Podman..."
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq podman podman-docker
-  echo "Podman installed successfully."
-else
-  echo "Podman is already installed."
-fi
-
-echo "Enabling Podman socket..."
-sudo systemctl enable --now podman.socket || true
-
-echo "Setting up collaborator user..."
-if ! id collaborator >/dev/null 2>&1; then
-  sudo useradd -r -s /usr/sbin/nologin -m -d /home/collaborator collaborator
-  echo "Created collaborator user."
-else
-  echo "collaborator user already exists."
-fi
-
-echo "Configuring Podman access for github user..."
-sudo usermod -aG podman github || true
-sudo loginctl enable-linger github || true
-
-echo "Configuring Podman access for collaborator user..."
-sudo usermod -aG podman collaborator || true
-sudo loginctl enable-linger collaborator || true
-
-echo "Creating SSH directory for collaborator user..."
-sudo mkdir -p /home/collaborator/.ssh
-sudo chmod 700 /home/collaborator/.ssh
-sudo touch /home/collaborator/.ssh/authorized_keys
-sudo chmod 600 /home/collaborator/.ssh/authorized_keys
-sudo chown -R collaborator:collaborator /home/collaborator/.ssh
-
-echo "Podman and users configured successfully."
-ENDSSH
-
 gh secret set SSH_PRIVATE_KEY --env production < "${ssh_key_path}/deploy_key"
 gh variable set SSH_PUBLIC_KEY --env production < "${ssh_key_path}/deploy_key.pub"
 gh variable set SSH_KNOW_HOSTS --env production < "$(ssh-keyscan "${hostname}")"
 
 echo "Syncing collaborator SSH keys..."
 gh workflow run sync-ssh-keys.yml --ref main
+
 echo "Triggering deployment workflow..."
 gh workflow run deploy.yml --ref main
+
+echo -en "${fin}"
+
+# =============================================================================
+headline "Setting up your development environment"
+
+mv .env.example .env
+if ! command -v uv >/dev/null 2>&1; then
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
+uv sync --dev
 
 echo "Setup complete! Your project ${project_name} is being deployed to ${hostname}."
