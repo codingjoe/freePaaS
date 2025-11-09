@@ -14,12 +14,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   container:
-    if: github.repository != 'codingjoe/freePaaS'
+    if: vars.SSH_HOSTNAME != ''
     name: Deploy production containers
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}
-      # url: Add your URL here if needed, (can't include secrets)
+      url: https://${{ vars.HOSTNAME }}/
     concurrency: production
     steps:
       - uses: actions/checkout@v5
@@ -28,6 +28,6 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - run: |
           docker context create production --description "Production Server" --docker \
-          "host=ssh://github@${{ vars.HOSTNAME }}"
+          "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
       - run: docker compose -f compose.production.yaml up -d --build --remove-orphans
         env: ${{ secrets || vars }}

@@ -17,7 +17,7 @@ No fuss automatic deployments straight form GitHub.
 ## Getting Started
 
 ```
-sh <(curl -fsSL https://raw.githubusercontent.com/codingjoe/freePaaS/main/bin/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/codingjoe/freePaaS/main/bin/install.sh)
 ```
 
 ```bash

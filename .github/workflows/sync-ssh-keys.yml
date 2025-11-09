@@ -15,11 +15,9 @@ permissions:
   contents: read
 jobs:
   sync-keys:
-    if: github.repository != 'codingjoe/freePaaS'
+    if: vars.SSH_HOSTNAME != ''
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.environment }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -125,18 +123,18 @@ jobs:
           AUTHORIZED_KEYS: "${{ steps.fetch-keys.outputs.authorized_keys }}"
         run: |
           echo "::group::Uploading SSH keys to remote host"
-          echo "::debug::Syncing SSH keys to ${{ vars.HOSTNAME }}"
+          echo "::debug::Syncing SSH keys to ${{ vars.SSH_HOSTNAME }}"
 
           # Write directly to remote file
-          echo "$AUTHORIZED_KEYS" | ssh "github@${{ vars.HOSTNAME }}" "sudo tee /home/collaborator/.ssh/authorized_keys > /dev/null"
+          echo "$AUTHORIZED_KEYS" | ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo tee /home/collaborator/.ssh/authorized_keys > /dev/null"
 
           echo "::endgroup::"
       - name: Verify authorized_keys
         run: |
           echo "::group::Verifying authorized_keys on remote host"
           echo "::debug::Current authorized_keys on remote host:"
-          ssh "github@${{ vars.HOSTNAME }}" "sudo cat /home/collaborator/.ssh/authorized_keys"
+          ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo cat /home/collaborator/.ssh/authorized_keys"
 
-          remote_key_count=$(ssh "github@${{ vars.HOSTNAME }}" "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
-          echo "::notice::✓ Synced $remote_key_count SSH keys to ${{ vars.HOSTNAME }}"
+          remote_key_count=$(ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
+          echo "::notice::✓ Synced $remote_key_count SSH keys to ${{ vars.SSH_HOSTNAME }}"
           echo "::endgroup::"

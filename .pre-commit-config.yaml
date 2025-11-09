@@ -57,6 +57,10 @@ repos:
     rev: v0.11.0
     hooks:
       - id: shellcheck
+  - repo: https://github.com/lovesegfault/beautysh
+    rev: v6.4.1
+    hooks:
+      - id: beautysh
 ci:
   skip:
     - no-commit-to-branch
