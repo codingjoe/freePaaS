@@ -20,10 +20,19 @@ sluggify() {
   echo "$1" | iconv -t "ascii//TRANSLIT" | sed -r "s/[~\^]+//g" | sed -r "s/[^a-zA-Z0-9]+/-/g" | sed -r "s/^-+\|-+$//g" | tr '[:upper:]' '[:lower:]'
 }
 
+# =============================================================================
+# STEP 1: Collect all required information
+# =============================================================================
+
+echo "=== Configuration Input ==="
+echo ""
+
+# Domain name
 echo "Enter your domain name (e.g., example.com): "
 read -r hostname
 project_name=$(sluggify "$hostname")
 
+# SSH username
 echo "Enter your SSH user name for ${hostname} (${USER})?: "
 read -r input_ssh_username
 if [ -n "$input_ssh_username" ]; then
@@ -32,26 +41,36 @@ else
   ssh_username=$USER
 fi
 
-
+# Verify SSH connection
+echo ""
+echo "Verifying SSH connection to ${hostname}..."
 if ! ssh -T "${ssh_username}@${hostname}" "echo 'SSH connection to ${hostname} successful.'"; then
   echo "SSH connection to ${hostname} failed. Please ensure you can SSH into the server before proceeding."
   exit 1
 fi
+echo "SSH connection verified."
+echo ""
 
+# Project name
 echo "Enter your project name (${project_name}): "
 read -r input_project_name
 if [ -n "$input_project_name" ]; then
   project_name=$input_project_name
 fi
 
+# GitHub owner
 printf "Enter your GitHub username or organization name (default %s): " "$gh_user"
-read -r gh_owner
-if [ -n "$gh_owner" ]; then
+read -r input_gh_owner
+if [ -n "$input_gh_owner" ]; then
+  gh_owner=$input_gh_owner
+else
   gh_owner=$gh_user
 fi
 
-echo "Create a new OAUTH App:"
-# Create OAUTH App
+# OAuth App setup
+echo ""
+echo "=== OAuth App Setup ==="
+echo "Create a new OAuth App at GitHub:"
 if gh api "orgs/${gh_owner}" >/dev/null 2>&1; then
   echo "https://github.com/organizations/${gh_owner}/settings/apps"
   open "https://github.com/organizations/${gh_owner}/settings/apps"
@@ -83,9 +102,28 @@ read -r oauth_client_secret
 stty echo
 printf "\n"
 
-printf "Enter the name of your project: "
-read -r project_name
-echo "Creating environment form template..."
+# Confirm collected information
+echo ""
+echo "=== Configuration Summary ==="
+echo "Domain: ${hostname}"
+echo "SSH User: ${ssh_username}"
+echo "Project Name: ${project_name}"
+echo "GitHub Owner: ${gh_owner}"
+echo "OAuth Client ID: ${oauth_client_id}"
+echo ""
+echo "Press any key to start the installation, or Ctrl+C to cancel..."
+# shellcheck disable=SC2034
+read -r confirm
+
+# =============================================================================
+# STEP 2: Execute installation
+# =============================================================================
+
+echo ""
+echo "=== Starting Installation ==="
+echo ""
+
+echo "Creating GitHub repository from template..."
 gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
 cd "${project_name}" || exit 1
 
