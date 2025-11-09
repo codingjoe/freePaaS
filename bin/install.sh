@@ -158,7 +158,7 @@ gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
 
 echo "Setting up your production environment on GitHub..."
 gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
-gh variable set HOSTNAME --env production < "$hostname"
+gh variable set HOSTNAME --env production --body "$hostname"
 python -c "import secrets; print(secrets.token_urlsafe())" | gh variable set POSTGRES_PASSWORD --env production
 python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
 
