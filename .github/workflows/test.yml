@@ -8,4 +8,4 @@ jobs:
   test:
     environment: prod
     runs-on: ubuntu-latest
-    steps: echo ${{ toJson(vars) }}
+    steps: echo ${{ vars }} | true
