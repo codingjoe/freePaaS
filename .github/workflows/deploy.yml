@@ -27,7 +27,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - run: |
-          docker context create production --description "Production Server" --docker \
-          "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
-      - run: docker compose -f compose.production.yaml up -d --build --remove-orphans
+          docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
+          docker context use production
+      - run: docker compose -f compose.yaml -f compose.production.yaml up -d --build --remove-orphans
         env: ${{ secrets || vars }}
