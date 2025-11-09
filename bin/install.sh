@@ -123,7 +123,7 @@ echo "SSH User: ${ssh_username}"
 echo "Project Name: ${project_name}"
 echo "GitHub Owner: ${gh_owner}"
 echo "OAuth Client ID: ${oauth_client_id}"
-echo "OAUTH Client Secret: *********"
+echo "OAUTH Client Secret: ${oauth_client_secret:0:4}*********"
 hr
 echo "Press any key to start the installation, or Ctrl+C to cancel..."
 # shellcheck disable=SC2034
@@ -150,7 +150,7 @@ echo -en "${action}"
 echo "Configuring repository workflow secrets on GitHub..."
 gh variable set OAUTH_CLIENT_ID --body "$oauth_client_id"
 gh secret set OAUTH_CLIENT_SECRET --body "$oauth_client_secret"
-python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh select set OAUTH2_PROXY_COOKIE_SECRET
+python -c "import secrets; print(secrets.token_bytes(16).hex())" | gh secret set OAUTH2_PROXY_COOKIE_SECRET
 gh variable set SSH_HOSTNAME --body "$hostname"
 gh variable set SSH_KNOW_HOSTS --body "$(ssh-keyscan "${hostname}")"
 gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
