@@ -10,6 +10,7 @@ services:
         condition: service_healthy
     networks:
       - oauth2-proxy
+      - wan # for github oauth
   dozzle:
     container_name: dozzle
     image: amir20/dozzle:v8.14.6

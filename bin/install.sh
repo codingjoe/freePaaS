@@ -95,7 +95,7 @@ Create a new OAuth App at GitHub: ${info}${gh_create_app_url}${fin}
 Use the following values:
 - Application name: ${info}${project_name}${fin}
 - Homepage URL: ${info}https://${hostname}/${fin}
-- Authorization callback URL: ${info}https://dozzle.${hostname}/oauth2/github/authorization-code-callback${fin}
+- Authorization callback URL: ${info}https://dozzle.${hostname}/oauth2/callback${fin}
 
 Please check 'Request user authorization (OAuth) during installation'.
 You can disable the Webhook section.
