@@ -45,21 +45,19 @@ sudo chown github:github /home/github/.ssh/authorized_keys
 echo "SSH key configured for github user."
 
 # =============================================================================
-# STEP 3: Install Podman and set up collaborator user
+# STEP 3: Install Docker Engine and set up collaborator user
 # =============================================================================
 
-echo "Checking if Podman is installed..."
-if ! command -v podman >/dev/null 2>&1; then
-    echo "Installing Podman..."
-    sudo apt-get update -qq
-    sudo apt-get install -y -qq podman podman-docker
-    echo "Podman installed successfully."
+echo "Checking if Docker is installed..."
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Installing Docker..."
+    newgrp docker || true
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh ./get-docker.sh --dry-run
+    echo "Docker installed successfully."
 else
-    echo "Podman is already installed."
+    echo "Docker is already installed."
 fi
-
-echo "Enabling Podman socket..."
-sudo systemctl enable --now podman.socket || true
 
 echo "Setting up collaborator user..."
 if ! id collaborator >/dev/null 2>&1; then
@@ -69,12 +67,12 @@ else
     echo "collaborator user already exists."
 fi
 
-echo "Configuring Podman access for github user..."
-sudo usermod -aG podman github || true
+echo "Configuring Docker access for github user..."
+sudo usermod -aG docker github || true
 sudo loginctl enable-linger github || true
 
-echo "Configuring Podman access for collaborator user..."
-sudo usermod -aG podman collaborator || true
+echo "Configuring Docker access for collaborator user..."
+sudo usermod -aG docker collaborator || true
 sudo loginctl enable-linger collaborator || true
 
 echo "Creating SSH directory for collaborator user..."
