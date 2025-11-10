@@ -51,9 +51,11 @@ echo "SSH key configured for github user."
 echo "Checking if Docker is installed..."
 if ! command -v docker >/dev/null 2>&1; then
     echo "Installing Docker..."
-    newgrp docker || true
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh ./get-docker.sh --dry-run
+    sudo groupadd docker
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+    sudo sh /tmp/get-docker.sh
+    sudo systemctl enable docker.service
+    sudo systemctl enable containerd.service
     echo "Docker installed successfully."
 else
     echo "Docker is already installed."
