@@ -123,7 +123,7 @@ echo "SSH User: ${ssh_username}"
 echo "Project Name: ${project_name}"
 echo "GitHub Owner: ${gh_owner}"
 echo "OAuth Client ID: ${oauth_client_id}"
-echo "OAUTH Client Secret: ${oauth_client_secret:0:4}*********"
+echo "OAUTH Client Secret: *****$(echo "$oauth_client_secret" | tail -c 8)"
 hr
 echo "Press any key to start the installation, or Ctrl+C to cancel..."
 # shellcheck disable=SC2034
@@ -141,6 +141,18 @@ echo -en "${action}"
 # Run remote setup script
 ssh -T "${ssh_username}@${hostname}" "sh -s -- '${ssh_public_key}'" < "bin/setup_remote_host.sh"
 echo -en "${fin}"
+echo -e "${success_msg}Remote host setup completed!${fin}"
+echo -en "${action}Creating Docker context for remote host... "
+if docker context create "${project_name}" --description "freePaaS remote host for ${hostname}" --docker 'host=ssh://collaborator@${hostname}'; then
+    docker context export "${project_name}" collaborator.dockercontext
+    echo -e "${success_msg}SUCCESS${fin}"
+else
+    echo -e "${error}FAILED${fin}"
+    echo "Make sure you have Docker installed locally, next you can run:
+  docker context create \"${project_name}\" --description \"freePaaS remote host for ${hostname}\" --docker \"host=ssh://collaborator@${hostname}\"
+  "
+fi
+
 
 # =============================================================================
 headline "Setting your GitHub environment"

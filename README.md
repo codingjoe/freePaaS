@@ -25,6 +25,14 @@ bash <(curl -fsSL https://raw.githubusercontent.com/codingjoe/freePaaS/main/bin/
 
 The installer will guide you through the setup process and get your first application up and running in seconds!
 
+Do connect to your Docker host you use the context:
+
+```bash
+docker context import PROJECT_NAME collaborator.dockercontext
+docker context use PROJECT_NAME
+docker ps
+```
+
 ## How it works
 
 ```mermaid

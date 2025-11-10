@@ -14,12 +14,14 @@ fi
 ssh_public_key=$1
 
 # =============================================================================
-# STEP 1: Create github user with sudo privileges
+# STEP 1: Create users and configure SSH access
 # =============================================================================
+
+sudo groupadd docker || true
 
 echo "Setting up github user..."
 if ! id github >/dev/null 2>&1; then
-    sudo useradd -m -d /home/github -s /bin/bash github
+    sudo useradd -r -m github -d /home/github -G docker
     echo "Created github user."
 else
     echo "github user already exists."
@@ -34,24 +36,35 @@ sudo mkdir -p /home/github/.ssh
 sudo chmod 700 /home/github/.ssh
 sudo chown github:github /home/github/.ssh
 
-# =============================================================================
-# STEP 2: Set up SSH key for github user
-# =============================================================================
-
 echo "Setting up SSH key for github user..."
 echo "${ssh_public_key}" | sudo tee /home/github/.ssh/authorized_keys > /dev/null
 sudo chmod 600 /home/github/.ssh/authorized_keys
 sudo chown github:github /home/github/.ssh/authorized_keys
 echo "SSH key configured for github user."
 
+echo "Setting up collaborator user..."
+if ! id collaborator >/dev/null 2>&1; then
+    sudo useradd -r -s /bin/rbash -m -d /home/collaborator collaborator
+    echo "Created collaborator user."
+else
+    echo "collaborator user already exists."
+fi
+
+echo "Creating SSH directory for collaborator user..."
+sudo mkdir -p /home/collaborator/.ssh
+sudo chmod 700 /home/collaborator/.ssh
+sudo touch /home/collaborator/.ssh/authorized_keys
+sudo chmod 600 /home/collaborator/.ssh/authorized_keys
+sudo chown -R collaborator:collaborator /home/collaborator/.ssh
+
 # =============================================================================
-# STEP 3: Install Docker Engine and set up collaborator user
+# STEP 2: Install Docker Engine and set up collaborator user
 # =============================================================================
 
 echo "Checking if Docker is installed..."
 if ! command -v docker >/dev/null 2>&1; then
     echo "Installing Docker..."
-    sudo groupadd docker
+
     curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
     sudo sh /tmp/get-docker.sh
     sudo systemctl enable docker.service
@@ -61,27 +74,6 @@ else
     echo "Docker is already installed."
 fi
 
-echo "Setting up collaborator user..."
-if ! id collaborator >/dev/null 2>&1; then
-    sudo useradd -r -s /usr/sbin/nologin -m -d /home/collaborator collaborator
-    echo "Created collaborator user."
-else
-    echo "collaborator user already exists."
-fi
 
-echo "Configuring Docker access for github user..."
-sudo usermod -aG docker github || true
-sudo loginctl enable-linger github || true
-
-echo "Configuring Docker access for collaborator user..."
-sudo usermod -aG docker collaborator || true
-sudo loginctl enable-linger collaborator || true
-
-echo "Creating SSH directory for collaborator user..."
-sudo mkdir -p /home/collaborator/.ssh
-sudo chmod 700 /home/collaborator/.ssh
-sudo touch /home/collaborator/.ssh/authorized_keys
-sudo chmod 600 /home/collaborator/.ssh/authorized_keys
-sudo chown -R collaborator:collaborator /home/collaborator/.ssh
 
 echo "Remote host setup complete!"

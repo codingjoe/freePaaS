@@ -1,8 +1,12 @@
 name: Deploy
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [ci]
+    strategy: wait-all
+    timeout: 0
+    branches: [main]
+    types:
+      - completed
   workflow_dispatch: # Allow manual trigger
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -22,10 +26,19 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - run: |
+      - name: Pin known hosts
+        run: |
+          echo "::group::Pinning known hosts"
+          echo "${{ vars.SSH_KNOW_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "::debug::Known hosts updated:"
+          cat ~/.ssh/known_hosts
+          echo "::endgroup::"
+      - name: Setting up Docker context for remote deployment
+        run: |
           docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
           docker context use production
-      - run: |
+      - name: Deploy production containers
+        run: |
           touch .env
           docker compose -f compose.yaml -f compose.production.yaml up -d --build --remove-orphans
         env: ${{ vars }}

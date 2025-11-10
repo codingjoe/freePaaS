@@ -89,6 +89,8 @@ services:
       - wan
     env_file:
       - .env
+    environment:
+      HOSTNAME: ${HOSTNAME}
     labels:
       dev.dozzle.group: host
     deploy:
