@@ -6,14 +6,14 @@
 
 Production ready services fully managed on a RaspberryPi (or any other machine):
 
-- [12-factor] app principles
-- continues deployment
-- environment & key management
-- managed databases ([PostgreSQL], [Redis])
-- managed [updates & security alerts][dependabot]
-- monitoring & [logging][dozzle]
-- SSL via [Let's Encrypt][letsencrypt]
-- [Python] & [Node.js] support (more languages coming soon)
+- 🏗️ [12-factor] app principles
+- 🚀 continues deployment
+- 🔐 environment & key management
+- 🗄️ managed databases ([PostgreSQL], [Redis])
+- 🔔 managed [updates & security alerts][dependabot]
+- 📊 monitoring & [logging][dozzle]
+- 🔒 SSL via [Let's Encrypt][letsencrypt]
+- 🐍 [Python] & 🟢 [Node.js] support (more languages coming soon)
 
 No config, no costs, just GitHub and your own server.
 
@@ -32,25 +32,25 @@ The installer will guide you through the setup process and get your first applic
 title: Architecture
 ---
 flowchart LR
-  subgraph github["GitHub"]
-    git[Version Control]
-    LB[CI/CD]
-    env[Secrets Storage]
-    auth[Auth & Users]
+  subgraph github["🐙 GitHub"]
+    git["📦 Version Control"]
+    LB["🔄 CI/CD"]
+    env["🔐 Secrets Storage"]
+    auth["👤 Auth & Users"]
   end
 
-  subgraph host[Docker Host]
-    subgraph app[App 1...N]
-      web1[Web 1...N]
-      pg[PostgreSQL]
-      redis[Redis]
+  subgraph host["🐳 Docker Host"]
+    subgraph app["📱 App 1...N"]
+      web1["🌐 Web 1...N"]
+      pg["🐘 PostgreSQL"]
+      redis["⚡ Redis"]
 
       web1 --- pg
       web1 --- redis
     end
-    caddy[Caddy Load Balancer]
-    logs[Logging & Monitoring]
-    backups[Backups Service]
+    caddy["⚖️ Caddy Load Balancer"]
+    logs["📊 Logging & Monitoring"]
+    backups["💾 Backups Service"]
     caddy --- web1
     caddy --- logs
     pg --- backups
@@ -58,6 +58,18 @@ flowchart LR
   end
 
   github --> host
+
+  classDef githubStyle fill:#23863699,stroke-width:0px,color:#fff
+  classDef githubServiceStyle stroke-width:0px
+  classDef hostStyle fill:#0969da99,stroke-width:0px,color:#fff
+  classDef appStyle fill:#8250df99,stroke-width:0px,color:#fff
+  classDef serviceStyle fill:#bf8700,stroke-width:0px,color:#fff
+
+  class github githubStyle
+  class host hostStyle
+  class app appStyle
+  class web1,pg,redis,caddy,logs,backups serviceStyle
+  class git,LB,env,auth githubServiceStyle
 ```
 
 freePaaS uses a GitOps approach to deploy and manage your applications. GitHub is used as the single source of truth for application code, configuration, and secrets and authentication for staff.
