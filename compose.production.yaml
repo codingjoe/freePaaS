@@ -22,6 +22,9 @@ services:
       - wan # for gravatar
     environment:
       DOZZLE_AUTH_PROVIDER: forward-proxy
+      DOZZLE_AUTH_HEADER_USER: X-Forwarded-User
+      DOZZLE_AUTH_HEADER_EMAIL: X-Forwarded-Email
+      DOZZLE_AUTH_HEADER_NAME: X-Forwarded-Preferred-Username
     deploy:
       mode: global
     healthcheck:
