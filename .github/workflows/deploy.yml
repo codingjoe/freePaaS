@@ -39,5 +39,5 @@ jobs:
           docker context use production
           touch .env
       - name: Deploy production containers
-        run: docker compose -f compose.yaml -f compose.production.yaml -p ${{ job.environment.name }} up -d --build --remove-orphans
+        run: docker compose -p ${{ job.environment.name }} up -d
         env: ${{ vars }}
