@@ -6,7 +6,7 @@
 		authentication portal githubPortal {
 			crypto default token lifetime 86400 # 24 hours
 			enable identity provider github
-			cookie domain *.{$HOSTNAME}
+			cookie domain .{$HOSTNAME}
 
 			ui {
 				theme basic
