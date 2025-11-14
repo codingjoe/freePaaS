@@ -10,7 +10,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   container:
     if: vars.SSH_HOSTNAME != ''
@@ -29,7 +29,7 @@ jobs:
       - name: Pin known hosts
         run: |
           echo "::group::Pinning known hosts"
-          echo "${{ vars.SSH_KNOW_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "${{ vars.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
           echo "::debug::Known hosts updated:"
           cat ~/.ssh/known_hosts
           echo "::endgroup::"
@@ -37,8 +37,7 @@ jobs:
         run: |
           docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
           docker context use production
-      - name: Deploy production containers
-        run: |
           touch .env
-          docker compose -f compose.yaml -f compose.production.yaml -p ${{ job.environment.name }} up -d --build --remove-orphans
+      - name: Deploy production containers
+        run: docker compose -f compose.yaml -f compose.production.yaml -p ${{ job.environment.name }} up -d --build --remove-orphans
         env: ${{ vars }}
