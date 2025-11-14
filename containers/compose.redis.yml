@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis:8.2.2-alpine
+    volumes:
+      - redis:/data
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  web:
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis/
+networks:
+  app:
+    driver: bridge
+    internal: true
+volumes:
+  redis:

@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:0.9.5-trixie-slim AS build
 LABEL authors="codingjoe"
 
 # Install dependencies
-COPY ../../../Aptfile /tmp
+COPY ./Aptfile /tmp
 RUN cd /tmp && apt-get update && cat Aptfile | xargs apt-get download \
     && mkdir -p /dpkg && \
     for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
@@ -16,7 +16,7 @@ ENV UV_COMPILE_BYTECODE=1
 
 # Install Python and dependencies
 WORKDIR /app
-RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,source=../../../uv.lock,target=uv.lock --mount=type=bind,source=../../../pyproject.toml,target=pyproject.toml uv sync --frozen --no-install-project --no-editable
+RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,source=./uv.lock,target=uv.lock --mount=type=bind,source=./pyproject.toml,target=pyproject.toml uv sync --frozen --no-install-project --no-editable
 COPY .. /app
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-editable
 
@@ -38,7 +38,7 @@ EXPOSE 8000
 
 WORKDIR /app
 
-ENTRYPOINT ["python", "-m"]
+ENTRYPOINT ["python"]
 
 FROM development AS production
 

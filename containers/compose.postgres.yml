@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:18.0-alpine3.22
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  web:
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres/postgres
+networks:
+  app:
+    driver: bridge
+    internal: true
+volumes:
+  postgres:

@@ -1,47 +1,55 @@
-https://{$HOSTNAME} {
-	route /* {
-		reverse_proxy http://web:8000
-	}
+{
+	order authenticate before respond
+	order authorize before basicauth
+	security {
+		oauth identity provider github {$CADDY_OAUTH_CLIENT_ID} {$CADDY_OAUTH_CLIENT_SECRET}
+		authentication portal githubPortal {
+			crypto default token lifetime 86400 # 24 hours
+			enable identity provider github
+			cookie domain *.{$HOSTNAME}
 
-	log {
-    output stdout
-    format json
-  }
-}
+			ui {
+				theme basic
+				links {
+					"App" https://{$HOSTNAME}/ icon "las la-rocket"
+					"Logs" https://logs.{$HOSTNAME}/ icon "las la-terminal"
+					"My Identity" "/whoami" icon "las la-user"
+				}
+			}
 
-https://dozzle.{$HOSTNAME} {
-	# Requests to /oauth2/* are proxied to oauth2-proxy without authentication.
-	# You can't use `reverse_proxy /oauth2/* oauth2-proxy.internal:4180` here because the reverse_proxy directive has lower precedence than the handle directive.
-	handle /oauth2/* {
-		reverse_proxy http://oauth2-proxy:4180 {
-			# oauth2-proxy requires the X-Real-IP and X-Forwarded-{Proto,Host,Uri} headers.
-			# The reverse_proxy directive automatically sets X-Forwarded-{For,Proto,Host} headers.
-			header_up X-Real-IP {remote_host}
-			header_up X-Forwarded-Uri {uri}
-		}
-	}
-
-	# Requests to other paths are first processed by oauth2-proxy for authentication.
-	handle {
-		forward_auth http://oauth2-proxy:4180 {
-			uri /oauth2/auth
-
-			# oauth2-proxy requires the X-Real-IP and X-Forwarded-{Proto,Host,Uri} headers.
-			# The forward_auth directive automatically sets the X-Forwarded-{For,Proto,Host,Method,Uri} headers.
-			header_up X-Real-IP {remote_host}
-
-			# If needed, you can copy headers from the oauth2-proxy response to the request sent to the upstream.
-			# Make sure to configure the --set-xauthrequest flag to enable this feature.
-			#copy_headers X-Auth-Request-User X-Auth-Request-Email
-
-			# If oauth2-proxy returns a 401 status, redirect the client to the sign-in page.
-			@error status 401
-			handle_response @error {
-				redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+			transform user {
+				match realm github
+				action add role authp/user
 			}
 		}
-
-		# If oauth2-proxy returns a 2xx status, the request is then proxied to the upstream.
-		reverse_proxy http://dozzle:8080
+		authorization policy paasPolicy {
+			set auth url https://auth.{$HOSTNAME}/oauth2/github
+			allow roles authp/user
+			inject headers with claims
+			inject header "Remote-Name" from "name"
+			inject header "Remote-User" from "sub"
+		}
 	}
+}
+
+{$HOSTNAME} {
+	reverse_proxy http://web:8000
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+auth.{$HOSTNAME} {
+	authenticate with githubPortal
+}
+
+logs.{$HOSTNAME} {
+	@local host logs.localhost
+	@not-local not host logs.localhost
+	authorize @not-local with paasPolicy
+	request_header @local "Remote-Name" "Local User"
+	request_header @local "Remote-User" "dev"
+	reverse_proxy http://dozzle:8080
 }
