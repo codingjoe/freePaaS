@@ -33,8 +33,8 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - caddy:/data
-      - caddy:/config
+      - caddy_data:/data
+      - caddy_config:/config
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - app
@@ -56,4 +56,5 @@ networks:
   wan:
     driver: bridge
 volumes:
-  caddy:
+  caddy_data:
+  caddy_config:

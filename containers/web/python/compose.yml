@@ -15,7 +15,7 @@ services:
       - app
       - wan
     healthcheck:
-      test: ["CMD", "-c", "import urllib.request; urllib.request.urlopen('http://web:8000/')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://web:8000/')"]
       interval: 10s
       retries: 5
       start_period: 30s
