@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.9.5-trixie-slim AS build
+FROM debian:trixie-slim AS build
 LABEL authors="codingjoe"
 
 # Install dependencies
@@ -15,12 +15,17 @@ ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV
 
 WORKDIR /app
-COPY ../../../.nvmrc /app/.nvmrc
+COPY .nvmrc /app/.nvmrc
 RUN curl -fsSL https://raw.githubusercontent.com/tj/n/master/bin/n | bash -s install --cleanup auto
 RUN mkdir node_modules # In case there are no dependencies
-RUN --mount=type=cache,target=/app/node_modules --mount=type=bind,source=../../../package-lock.json,target=package-lock.json --mount=type=bind,source=../../../package.json,target=package.json npm ci
-COPY .. /app
-RUN --mount=type=cache,target=/app/node_modules npm ci
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+RUN  \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
 FROM gcr.io/distroless/cc:nonroot AS development
 
@@ -42,4 +47,4 @@ ENTRYPOINT ["node"]
 
 FROM development AS production
 
-COPY .. /app
+COPY . /app

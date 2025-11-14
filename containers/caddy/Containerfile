@@ -4,4 +4,7 @@ ENV HOSTNAME=localhost
 
 ARG TZ=UTC
 ENV TZ=$TZ
+
+RUN caddy add-package github.com/greenpau/caddy-security
+
 COPY ./containers/caddy/Caddyfile /etc/caddy/Caddyfile
