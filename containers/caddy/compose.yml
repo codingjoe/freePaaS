@@ -35,7 +35,6 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - app
       - wan
