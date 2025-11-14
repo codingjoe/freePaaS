@@ -47,4 +47,4 @@ ENTRYPOINT ["node"]
 
 FROM development AS production
 
-COPY .. /app
+COPY . /app
