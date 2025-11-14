@@ -1,4 +1,4 @@
-name: Capture Postgres Backup
+name: PostgreSQL Backup
 on:
   schedule:
     - cron: '0 0 * * *' # Sync daily at midnight
@@ -7,9 +7,9 @@ concurrency:
   group: pg-backup
   cancel-in-progress: false
 jobs:
-  pg_backup:
+  pg_dump:
     if: vars.SSH_HOSTNAME != ''
-    name: Capture Postgres backup
+    name: Capture and store backup
     runs-on: ubuntu-latest
     environment:
       name: production
