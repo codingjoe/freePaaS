@@ -9,6 +9,7 @@ RUN cd /tmp && apt-get update && cat Aptfile | xargs apt-get download \
 
 # UV
 ARG UV_NO_DEV
+ENV UV_NO_DEV=${UV_NO_DEV:-1}
 ENV UV_PYTHON_PREFERENCE=only-managed
 ENV UV_PYTHON_INSTALL_DIR=/opt/python
 ENV UV_LINK_MODE=copy
