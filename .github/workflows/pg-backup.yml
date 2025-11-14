@@ -37,7 +37,7 @@ jobs:
           docker compose exec postgres /usr/bin/pg_dump -Rc -U postgres postgres > backup.dump
         env: ${{ vars }}
       - name: Upload Postgres backup artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backup.dump
           path: backup.dump
