@@ -10,7 +10,7 @@ services:
     env_file:
       - ../../../.env
     restart: unless-stopped
-    command: ["-m", "http.server"] # module to run
+    command: ["-m", "http.server"] # Run Python's built-in HTTP server module
     networks:
       - app
       - wan
