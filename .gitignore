@@ -208,3 +208,6 @@ __marimo__/
 
 # Nodejs
 node_modules/
+
+# PG backups
+backups/

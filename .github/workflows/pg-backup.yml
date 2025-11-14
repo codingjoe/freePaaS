@@ -1,20 +1,15 @@
-name: Deploy
+name: PostgreSQL Backup
 on:
-  workflow_run:
-    workflows: [ci]
-    strategy: wait-all
-    timeout: 0
-    branches: [main]
-    types:
-      - completed
+  schedule:
+    - cron: '0 0 * * *' # Sync daily at midnight
   workflow_dispatch: # Allow manual trigger
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: pg-backup
   cancel-in-progress: false
 jobs:
-  container:
+  pg_dump:
     if: vars.SSH_HOSTNAME != ''
-    name: Deploy production containers
+    name: Capture and store backup
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -38,6 +33,11 @@ jobs:
           docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
           docker context use production
           touch .env
-      - name: Deploy production containers
-        run: docker compose -p ${{ job.environment.name }} up -d
+      - name: Capture Postgres backup
+        run: docker compose exec postgres /usr/bin/pg_dump -Rc -U postgres postgres > backup.dump
         env: ${{ vars }}
+      - name: Upload Postgres backup artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: backup.dump
+          path: backup.dump

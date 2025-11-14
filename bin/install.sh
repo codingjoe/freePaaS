@@ -163,7 +163,7 @@ echo "Configuring repository workflow secrets on GitHub..."
 gh variable set CADDY_OAUTH_CLIENT_ID --body "$oauth_client_id"
 gh secret set CADDY_OAUTH_CLIENT_SECRET --body "$oauth_client_secret"
 gh variable set SSH_HOSTNAME --body "$hostname"
-gh variable set SSH_KNOW_HOSTS --body "$(ssh-keyscan "${hostname}")"
+gh variable set SSH_KNOWN_HOSTS --body "$(ssh-keyscan "${hostname}")"
 gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
 gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
 

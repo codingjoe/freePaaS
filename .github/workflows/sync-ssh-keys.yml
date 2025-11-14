@@ -10,7 +10,7 @@ on:
         default: 'production'
 concurrency:
   group: sync-ssh-keys
-  cancel-in-progress: true
+  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
@@ -114,7 +114,7 @@ jobs:
       - name: Pin known hosts
         run: |
           echo "::group::Pinning known hosts"
-          echo "${{ vars.SSH_KNOW_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "${{ vars.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
           echo "::debug::Known hosts updated:"
           cat ~/.ssh/known_hosts
           echo "::endgroup::"
