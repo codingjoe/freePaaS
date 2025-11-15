@@ -43,6 +43,9 @@
 
 auth.{$HOSTNAME} {
 	authenticate with githubPortal
+	tls {
+		protocols tls1.3
+	}
 }
 
 logs.{$HOSTNAME} {
@@ -52,4 +55,8 @@ logs.{$HOSTNAME} {
 	request_header @local "Remote-Name" "Local User"
 	request_header @local "Remote-User" "dev"
 	reverse_proxy http://dozzle:8080
+
+	tls {
+		protocols tls1.3
+	}
 }
