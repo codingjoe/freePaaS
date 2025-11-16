@@ -33,6 +33,17 @@ docker context use PROJECT_NAME
 docker ps
 ```
 
+### DNS Setup
+
+If you haven't done so already, here are the steps to set up your DNS records:
+
+```text
+A @ YOUR_SERVER_IP
+A * YOUR_SERVER_IP
+AAAA @ YOUR_SERVER_IPV6
+AAAA * YOUR_SERVER_IPV6
+```
+
 ## How it works
 
 ```mermaid
