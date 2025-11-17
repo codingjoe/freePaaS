@@ -21,9 +21,5 @@ services:
         restart: true
     environment:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis/
-networks:
-  app:
-    driver: bridge
-    internal: true
 volumes:
   redis:

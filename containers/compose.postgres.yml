@@ -21,9 +21,5 @@ services:
         restart: true
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres/postgres
-networks:
-  app:
-    driver: bridge
-    internal: true
 volumes:
   postgres:
