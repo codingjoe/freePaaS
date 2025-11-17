@@ -1,5 +1,7 @@
 FROM debian:trixie-slim AS build
-LABEL authors="codingjoe"
+LABEL title="SMTP Server"
+LABEL license="BSD-2-Clause"
+LABEL url="https://github.com/codingjoe/freePaaS"
 
 # Install dependencies
 COPY ../../../Aptfile /tmp
@@ -38,8 +40,6 @@ COPY --from=build --chown=root:root /app/node_modules /opt/node_modules
 
 ENV NODE_PATH=/opt/node_modules
 ENV PATH="/opt/nodejs/bin:$PATH"
-
-EXPOSE 8000
 
 WORKDIR /app
 

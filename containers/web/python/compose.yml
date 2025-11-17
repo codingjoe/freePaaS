@@ -23,9 +23,4 @@ services:
     deploy:
       mode: replicated
       replicas: 2
-networks:
-  app:
-    driver: bridge
-    internal: true
-  wan:
-    driver: bridge
+    stop_grace_period: 1m

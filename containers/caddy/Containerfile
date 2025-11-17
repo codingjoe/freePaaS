@@ -1,9 +1,9 @@
 FROM caddy:2.10.0-alpine
+LABEL title="SMTP Server"
+LABEL license="BSD-2-Clause"
+LABEL url="https://github.com/codingjoe/freePaaS"
 
 ENV HOSTNAME=localhost
-
-ARG TZ=UTC
-ENV TZ=$TZ
 
 RUN caddy add-package github.com/greenpau/caddy-security
 

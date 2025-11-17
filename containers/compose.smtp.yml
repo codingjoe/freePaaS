@@ -1,0 +1,42 @@
+services:
+  smtp:
+    image: ghcr.io/docker-mailserver/docker-mailserver:15.1.0
+    container_name: smtp
+    hostname: smtp
+    domainname: ${HOSTNAME}
+    environment:
+      SMTP_ONLY: 1
+      ONE_DIR: 1
+      SSL_TYPE:
+      PERMIT_DOCKER: connected-networks
+      NETWORK_INTERFACE: eth1
+      POSTFIX_INET_PROTOCOLS: ipv4
+      LOG_LEVEL: info
+    volumes:
+      - smtp-data:/var/mail
+      - smtp-state:/var/mail-state
+      - smtp-config:/tmp/docker-mailserver
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    stop_grace_period: 1m
+    healthcheck:
+      test: "ss --listening --ipv4 --tcp | grep --silent ':smtp' || exit 1"
+      timeout: 3s
+    networks:
+      app:
+        interface_name: eth1
+      wan:
+        interface_name: eth0
+    labels:
+      dev.dozzle.group: PaaS
+  web:
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+    environment:
+      REDIS_URL: smtp://smtp:25/
+volumes:
+  smtp-config:
+  smtp-state:
+  smtp-data:
