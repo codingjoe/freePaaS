@@ -35,7 +35,7 @@ services:
         condition: service_healthy
         restart: true
     environment:
-      SMTP_URL: smtp://smtp:25/
+      EMAIL_URL: smtp://smtp:25/
 volumes:
   smtp-config:
   smtp-state:
