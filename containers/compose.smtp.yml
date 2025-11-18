@@ -23,6 +23,9 @@ services:
     healthcheck:
       test: "ss --listening --ipv4 --tcp | grep --silent ':smtp' || exit 1"
       timeout: 3s
+      interval: 10s
+      retries: 5
+      start_period: 30s
     networks:
       app:
         interface_name: eth1
