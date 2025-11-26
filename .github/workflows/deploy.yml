@@ -39,7 +39,7 @@ jobs:
           docker context use production
           touch .env
       - name: Deploy production containers
-        run: docker compose --project-name paas up --detach --quiet-pull
+        run: docker compose --file compose.paas.yml --project-name paas up --detach --quiet-pull
         env: ${{ vars }}
   app:
     if: vars.SSH_HOSTNAME != ''
@@ -69,5 +69,5 @@ jobs:
           docker context use production
           touch .env
       - name: Deploy production containers
-        run: docker compose --project-name app up --detach --quiet-pull
+        run: docker compose --file compose.app.yml --project-name app up --detach --quiet-pull
         env: ${{ vars }}
