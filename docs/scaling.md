@@ -1,6 +1,6 @@
 # Scaling
 
-freePaaS allows you to start small and scale your applications as they grow in popularity. There are multiple ways to progressively scale your applications depending without breaking the bank.
+freePaaS allows you to start small and scale your applications as they grow in popularity. There are multiple ways to progressively scale your applications depending on your needs without breaking the bank.
 
 ## Scaling services
 
@@ -40,7 +40,7 @@ services:
 ```
 
 > [!IMPORTANT]
-> Setting resource limits is important to prevent a single service from consuming all available resources on the server, which could lead to performance degradation or crashes. You MUST always set `memswap_limit` to prevent services from using swap space. Swaping will prevent OOM (out of memory) restarts.
+> Setting resource limits is important to prevent a single service from consuming all available resources on the server, which could lead to performance degradation or crashes. You MUST always set `memswap_limit` to prevent services from using swap space. Swapping will prevent OOM (out of memory) restarts.
 
 ## Long term growth strategies
 
