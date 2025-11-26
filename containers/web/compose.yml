@@ -1,0 +1,10 @@
+services:
+  web:
+    memswap_limit: 1g # Limit total memory usage (RAM + swap) to 1GB
+    deploy:
+      mode: replicated
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.25' # Limit to 25% of a CPU
+          memory: 512M # Limit to 512MB of RAM

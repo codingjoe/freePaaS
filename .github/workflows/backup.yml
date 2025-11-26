@@ -1,4 +1,4 @@
-name: PostgreSQL Backup
+name: Backup
 on:
   schedule:
     - cron: '0 0 * * *' # Sync daily at midnight
@@ -9,7 +9,7 @@ concurrency:
 jobs:
   pg_dump:
     if: vars.SSH_HOSTNAME != ''
-    name: Capture and store backup
+    name: PostgreSQL
     runs-on: ubuntu-latest
     environment:
       name: production
