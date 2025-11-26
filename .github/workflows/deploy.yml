@@ -12,9 +12,9 @@ concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: false
 jobs:
-  container:
+  paas:
     if: vars.SSH_HOSTNAME != ''
-    name: Deploy production containers
+    name: PaaS
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -39,5 +39,35 @@ jobs:
           docker context use production
           touch .env
       - name: Deploy production containers
-        run: docker compose -p ${{ job.environment.name }} up -d
+        run: docker compose --project-name paas up --detach --quiet-pull
+        env: ${{ vars }}
+  app:
+    if: vars.SSH_HOSTNAME != ''
+    needs: paas
+    name: App
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ vars.HOSTNAME }}/
+    concurrency: production
+    env: ${{ secrets }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Pin known hosts
+        run: |
+          echo "::group::Pinning known hosts"
+          echo "${{ vars.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "::debug::Known hosts updated:"
+          cat ~/.ssh/known_hosts
+          echo "::endgroup::"
+      - name: Setting up Docker context for remote deployment
+        run: |
+          docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
+          docker context use production
+          touch .env
+      - name: Deploy production containers
+        run: docker compose --project-name app up --detach --quiet-pull
         env: ${{ vars }}

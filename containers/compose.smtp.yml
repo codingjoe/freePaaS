@@ -44,3 +44,8 @@ volumes:
   smtp-config:
   smtp-state:
   smtp-data:
+networks:
+  app:
+    external: true
+  wan:
+    external: true

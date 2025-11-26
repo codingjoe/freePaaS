@@ -8,3 +8,8 @@ services:
         limits:
           cpus: '0.25' # Limit to 25% of a CPU
           memory: 512M # Limit to 512MB of RAM
+networks:
+  app:
+    external: true
+  wan:
+    external: true

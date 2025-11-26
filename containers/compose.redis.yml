@@ -23,3 +23,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis/
 volumes:
   redis:
+networks:
+  app:
+    external: true
+  wan:
+    external: true

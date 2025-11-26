@@ -2,13 +2,13 @@ services:
   web:
     pull_policy: build
     build:
-      context: ../../..
+      context: ../..
       dockerfile: containers/web/python/Containerfile
       target: ${TARGET:-production}
       args:
         UV_NO_DEV: 0
     env_file:
-      - ../../../.env
+      - ../../.env
     restart: unless-stopped
     command: ["-m", "http.server"] # Run Python's built-in HTTP server module
     networks:

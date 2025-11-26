@@ -1,5 +1,5 @@
 FROM caddy:2.10.0-alpine
-LABEL title="SMTP Server"
+LABEL title="Caddy reverse proxy"
 LABEL license="BSD-2-Clause"
 LABEL url="https://github.com/codingjoe/freePaaS"
 
@@ -7,4 +7,4 @@ ENV HOSTNAME=localhost
 
 RUN caddy add-package github.com/greenpau/caddy-security
 
-COPY ./containers/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY ./containers/paas/Caddyfile /etc/caddy/Caddyfile

@@ -23,8 +23,8 @@ services:
     container_name: caddy
     pull_policy: build
     build:
-      context: ../../..
-      dockerfile: containers/caddy/Containerfile
+      context: ../..
+      dockerfile: containers/paas/Containerfile
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -51,9 +51,11 @@ services:
       dev.dozzle.group: PaaS
 networks:
   app:
+    name: app
     driver: bridge
     internal: true
   wan:
+    name: wan
     driver: bridge
 volumes:
   caddy_data:
