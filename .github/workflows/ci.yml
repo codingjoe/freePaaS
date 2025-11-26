@@ -20,7 +20,7 @@ jobs:
           - containers/web/node/Containerfile
           - containers/web/python/Containerfile
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with:
