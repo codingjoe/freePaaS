@@ -95,7 +95,7 @@ Create a new OAuth App at GitHub: ${info}${gh_create_app_url}${fin}
 Use the following values:
 - Application name: ${info}${project_name}${fin}
 - Homepage URL: ${info}https://${hostname}/${fin}
-- Authorization callback URL: ${info}https://dozzle.${hostname}/oauth2/callback${fin}
+- Authorization callback URL: ${info}https://auth.${hostname}/oauth2/github/authorization-code-callback${fin}
 
 Please check 'Request user authorization (OAuth) during installation'.
 You can disable the Webhook section.
@@ -185,6 +185,11 @@ echo -en "${fin}"
 headline "Setting up your development environment"
 
 mv .env.example .env
+cat >> .dtop.yml <<EOL
+  - host: ssh://collaborator@${hostname}
+    dozzle: https://logs.${hostname}/
+EOL
+
 if ! command -v uv >/dev/null 2>&1; then
     echo "Installing uv..."
     curl -LsSf https://astral.sh/uv/install.sh | sh

@@ -44,7 +44,7 @@ echo "SSH key configured for github user."
 
 echo "Setting up collaborator user..."
 if ! id collaborator >/dev/null 2>&1; then
-    sudo useradd -r -s /bin/rbash -m -d /home/collaborator collaborator
+    sudo useradd -r -s /bin/rbash -m -d /home/collaborator collaborator -G docker
     echo "Created collaborator user."
 else
     echo "collaborator user already exists."
