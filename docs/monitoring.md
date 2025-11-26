@@ -20,7 +20,7 @@ The bootstrap script creates a `.dtop.yml` configuration file for your project w
 
 ## Application Monitoring
 
-freePaaS provides only basic monitoring tools out of the box to help you asses your container health. For more advanced monitoring, logging, and alerting capabilities, consider integrating third-party services such as [Sentry].
+freePaaS provides only basic monitoring tools out of the box to help you assess your container health. For more advanced monitoring, logging, and alerting capabilities, consider integrating third-party services such as [Sentry].
 
 [dozzle]: https://dozzle.dev/
 [dtop]: https://dtop.dev/
