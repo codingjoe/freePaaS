@@ -24,7 +24,7 @@ COPY .. /app
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-editable
 
 
-FROM gcr.io/distroless/cc:nonroot AS development
+FROM gcr.io/distroless/static:nonroot AS development
 
 # Copy binary dependencies
 COPY --from=build /dpkg /

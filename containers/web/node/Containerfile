@@ -29,7 +29,7 @@ RUN  \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-FROM gcr.io/distroless/cc:nonroot AS development
+FROM gcr.io/distroless/static:nonroot AS development
 
 # Copy binary dependencies
 COPY --from=build /dpkg /
