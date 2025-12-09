@@ -1,7 +1,7 @@
 FROM debian:trixie-slim AS build
 LABEL title="SMTP Server"
 LABEL license="BSD-2-Clause"
-LABEL url="https://github.com/codingjoe/freePaaS"
+LABEL url="https://github.com/codingjoe/the-box"
 
 # Install dependencies
 COPY ../../../Aptfile /tmp

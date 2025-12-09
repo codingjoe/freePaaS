@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" font-family="Segoe UI, system-ui, sans-serif" viewBox="0 0 1280 640">
+  <circle cx="260" cy="320" r="200" fill="hsl(53, 80%, 50%)"/>
+  <g fill="#0006" stroke="#000" stroke-width="2">
+    <path stroke-width="24" d="M168 363.953V270c0-3.706 2-7.125 5.23-8.942l.186-.104 86.002-48.377.654-.368a8.01 8.01 0 0 1 7.856 0l87.398 49.162a9.17 9.17 0 0 1 4.674 7.991v94.591a9.57 9.57 0 0 1-4.712 8.247l-86.74 51.12a8.96 8.96 0 0 1-9.096 0l-86.74-51.12a9.57 9.57 0 0 1-4.712-8.247ZM264 426V318M264 318l-96-54M360 264l-96 54"/>
+  </g>
+  <text x="240" y="120" font-size="100" font-weight="bold" transform="matrix(1.6 0 0 1.6 120 120)">
+    The Box
+  </text>
+  <text x="242" y="170" font-size="50" font-style="italic" transform="matrix(1.6 0 0 1.6 120 120)" fill="#333333">
+    Signature Edition
+  </text>
+  <text x="244" y="214" font-size="24" transform="matrix(1.6 0 0 1.6 120 120)">
+    Secure, convenient, fast &amp; free forever!
+  </text>
+  <text y="-100">
+    8===D
+  </text>
+</svg>
