@@ -37,10 +37,10 @@ fi
 gh_user=$(gh api user --jq .login)
 
 # =============================================================================
-headline "freePaaS Installation Wizard"
+headline "The Box Installation Wizard"
 
 echo "
-This script will guide you through the installation of freePaaS on your server and your GitHub repository.
+This script will guide you through the installation of The Box on your server and your GitHub repository.
 Before you begin, ensure you have:
 - SSH access to your server
 - the GitHub CLI (gh) installed and authenticated"
@@ -111,7 +111,7 @@ headline "SSH Key Setup"
 
 echo -en "Generating SSH key pair for deployment..."
 ssh_key_path="$(mktemp -d)"
-ssh-keygen -t ed25519 -C "freePaaS deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
+ssh-keygen -t ed25519 -C "The Box deployment key" -f "${ssh_key_path}/deploy_key" -N "" > /dev/null
 ssh_public_key=$(cat "${ssh_key_path}/deploy_key.pub")
 echo -e "${success_msg}SUCCESS${fin}"
 
@@ -131,7 +131,7 @@ read -r confirm
 
 # =============================================================================
 headline "Creating GitHub repository from template"
-gh repo create --private --clone --template codingjoe/freePaaS "${project_name}"
+gh repo create --private --clone --template codingjoe/the-box "${project_name}"
 cd "${project_name}" || exit 1
 
 # =============================================================================
@@ -143,13 +143,13 @@ ssh -T "${ssh_username}@${hostname}" "sh -s -- '${ssh_public_key}'" < "bin/setup
 echo -en "${fin}"
 echo -e "${success_msg}Remote host setup completed!${fin}"
 echo -en "${action}Creating Docker context for remote host... "
-if docker context create "${project_name}" --description "freePaaS remote host for ${hostname}" --docker 'host=ssh://collaborator@${hostname}'; then
+if docker context create "${project_name}" --description "The Box remote host for ${hostname}" --docker 'host=ssh://collaborator@${hostname}'; then
     docker context export "${project_name}" collaborator.dockercontext
     echo -e "${success_msg}SUCCESS${fin}"
 else
     echo -e "${error}FAILED${fin}"
     echo "Make sure you have Docker installed locally, next you can run:
-  docker context create \"${project_name}\" --description \"freePaaS remote host for ${hostname}\" --docker \"host=ssh://collaborator@${hostname}\"
+  docker context create \"${project_name}\" --description \"The Box remote host for ${hostname}\" --docker \"host=ssh://collaborator@${hostname}\"
   "
 fi
 

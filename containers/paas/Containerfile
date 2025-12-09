@@ -1,7 +1,7 @@
 FROM caddy:2.10.0-alpine
 LABEL title="Caddy reverse proxy"
 LABEL license="BSD-2-Clause"
-LABEL url="https://github.com/codingjoe/freePaaS"
+LABEL url="https://github.com/codingjoe/the-box"
 
 ENV HOSTNAME=localhost
 

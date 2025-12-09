@@ -1,6 +1,6 @@
 # Deployment
 
-Deploying your application with freePaaS is a streamlined process that involves running an installation script and leveraging GitHub Actions for continuous deployment.
+Deploying your application with The Box is a streamlined process that involves running an installation script and leveraging GitHub Actions for continuous deployment.
 
 ## Initial Setup
 

@@ -1,8 +1,12 @@
 <p align="center">
-<img alt="freePaaS: Secure, convenient, fast & free forever!" src="logo.svg">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./images/logo-light.svg">
+    <img alt="The Box – Signature Edition: Secure, convenient, fast & free forever!" src="./images/logo-light.svg">
+  </picture>
 </p>
 
-# freePaaS — Secure, convenient, fast & free forever!
+# The Box — Secure, convenient, fast & free forever!
 
 Production ready services fully managed on a RaspberryPi (or any other machine):
 
@@ -20,7 +24,7 @@ No config, no costs, just GitHub and your own server.
 ## Getting Started
 
 ```
-bash <(curl -fsSL https://raw.githubusercontent.com/codingjoe/freePaaS/main/bin/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/codingjoe/the-box/main/bin/install.sh)
 ```
 
 The installer will guide you through the setup process and get your first application up and running in seconds!
@@ -91,7 +95,7 @@ flowchart LR
   class git,LB,env,auth githubServiceStyle
 ```
 
-freePaaS uses a GitOps approach to deploy and manage your applications. GitHub is used as the single source of truth for application code, configuration, and secrets and authentication for staff.
+The Box uses a GitOps approach to deploy and manage your applications. GitHub is used as the single source of truth for application code, configuration, and secrets and authentication for staff.
 The [Docker] host runs the applications in lightweight containers, managed by Docker Compose. A [Caddy] load balancer handles incoming traffic, providing automatic HTTPS and routing requests to the appropriate web servers. Each application has its own PostgreSQL database and Redis instance for caching.
 
 [12-factor]: https://12factor.net/
