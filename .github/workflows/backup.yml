@@ -8,9 +8,6 @@ on:
       SSH_KNOWN_HOSTS:
         required: false
         type: string
-      HOSTNAME:
-        required: false
-        type: string
     secrets:
       SSH_PRIVATE_KEY:
         required: true
