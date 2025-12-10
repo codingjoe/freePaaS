@@ -1,13 +1,21 @@
 name: Sync SSH Keys
 on:
-  schedule:
-    - cron: '0 * * * *' # Sync hourly
-  workflow_dispatch: # Allow manual trigger
+  workflow_call:
     inputs:
-      environment:
-        description: 'Target environment for syncing SSH keys'
+      SSH_HOSTNAME:
+        required: false
+        type: string
+      SSH_KNOWN_HOSTS:
+        required: false
+        type: string
+      HOSTNAME:
+        required: false
+        type: string
+    secrets:
+      SSH_PRIVATE_KEY:
         required: true
-        default: 'production'
+      GH_TOKEN:
+        required: true
 concurrency:
   group: sync-ssh-keys
   cancel-in-progress: false
@@ -18,8 +26,6 @@ jobs:
     if: vars.SSH_HOSTNAME != ''
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Get repository collaborators
         id: get-collaborators
@@ -50,6 +56,8 @@ jobs:
           collaborator_count=$(echo "$collaborators" | wc -l)
           echo "::debug::Total collaborators with push/admin access: $collaborator_count"
           echo "::endgroup::"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Fetch SSH keys for collaborators
         id: fetch-keys
         run: |
@@ -107,6 +115,8 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           echo "::endgroup::"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
         with:

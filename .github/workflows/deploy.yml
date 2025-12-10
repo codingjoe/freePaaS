@@ -1,13 +1,26 @@
 name: Deploy
 on:
-  workflow_run:
-    workflows: [ci]
-    strategy: wait-all
-    timeout: 0
-    branches: [main]
-    types:
-      - completed
-  workflow_dispatch: # Allow manual trigger
+  workflow_call:
+    inputs:
+      SSH_HOSTNAME:
+        required: false
+        type: string
+      SSH_KNOWN_HOSTS:
+        required: false
+        type: string
+      HOSTNAME:
+        required: false
+        type: string
+      CADDY_OAUTH_CLIENT_ID:
+        required: true
+        type: string
+    secrets:
+      SSH_PRIVATE_KEY:
+        required: true
+      CADDY_OAUTH_CLIENT_SECRET:
+        required: true
+      DOTENV_PRIVATE_KEY_PRODUCTION:
+        required: true
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: false
@@ -16,11 +29,7 @@ jobs:
     if: vars.SSH_HOSTNAME != ''
     name: PaaS
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://${{ vars.HOSTNAME }}/
     concurrency: production
-    env: ${{ secrets }}
     steps:
       - uses: actions/checkout@v6
       - uses: webfactory/ssh-agent@v0.9.1
@@ -37,10 +46,12 @@ jobs:
         run: |
           docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
           docker context use production
-          touch .env
       - name: Deploy production containers
         run: docker compose --file compose.paas.yml --project-name paas up --detach --quiet-pull
-        env: ${{ vars }}
+        env:
+          HOSTNAME: ${{ vars.HOSTNAME }}
+          CADDY_OAUTH_CLIENT_ID: ${{ vars.CADDY_OAUTH_CLIENT_ID }}
+          CADDY_OAUTH_CLIENT_SECRET: ${{ secrets.CADDY_OAUTH_CLIENT_SECRET }}
   app:
     if: vars.SSH_HOSTNAME != ''
     needs: paas
@@ -50,7 +61,6 @@ jobs:
       name: production
       url: https://${{ vars.HOSTNAME }}/
     concurrency: production
-    env: ${{ secrets }}
     steps:
       - uses: actions/checkout@v6
       - uses: webfactory/ssh-agent@v0.9.1
@@ -70,4 +80,6 @@ jobs:
           touch .env
       - name: Deploy production containers
         run: docker compose --file compose.app.yml --project-name app up --detach --quiet-pull
-        env: ${{ vars }}
+        env:
+          HOSTNAME: ${{ vars.HOSTNAME }}
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
