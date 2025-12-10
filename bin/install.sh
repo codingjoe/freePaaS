@@ -33,6 +33,12 @@ if ! command -v gh >/dev/null 2>&1; then
     exit 1
 fi
 
+# Test if Dotenvx is installed
+if ! command -v dotenvx >/dev/null 2>&1; then
+    echo "Dotenvx is not installed. Please install it from https://dotenvx.com/ and try again."
+    exit 1
+fi
+
 # org or user
 gh_user=$(gh api user --jq .login)
 
@@ -167,11 +173,12 @@ gh variable set SSH_KNOWN_HOSTS --body "$(ssh-keyscan "${hostname}")"
 gh variable set SSH_PUBLIC_KEY < "${ssh_key_path}/deploy_key.pub"
 gh secret set SSH_PRIVATE_KEY < "${ssh_key_path}/deploy_key"
 
-echo "Setting up your production environment on GitHub..."
-gh api -X PUT "/repos/{owner}/{repo}/environments/production" > /dev/null
-gh variable set HOSTNAME --env production --body "$hostname"
-python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set POSTGRES_PASSWORD --env production
-python -c "import secrets; print(secrets.token_urlsafe())" | gh secret set REDIS_PASSWORD --env production
+echo "Setting up your production environment..."
+touch .env.production
+dotenvx set HOSTNAME "$hostname" -f .env.production -p
+dotenvx set POSTGRES_PASSWORD "$(python -c "import secrets; print(secrets.token_urlsafe())")" -f .env.production
+dotenvx set REDIS_PASSWORD "$(python -c "import secrets; print(secrets.token_urlsafe())")" -f .env.production
+dotenvx get DOTENV_PRIVATE_KEY_PRODUCTION -f .env.keys | gh secret set DOTENV_PRIVATE_KEY_PRODUCTION
 
 echo "Syncing collaborator SSH keys..."
 gh workflow run sync-ssh-keys.yml --ref main
