@@ -23,7 +23,7 @@ permissions:
   contents: read
 jobs:
   sync-keys:
-    if: vars.SSH_HOSTNAME != ''
+    if: inputs.SSH_HOSTNAME != ''
     name: Sync SSH keys to production
     runs-on: ubuntu-latest
     steps:
@@ -124,7 +124,7 @@ jobs:
       - name: Pin known hosts
         run: |
           echo "::group::Pinning known hosts"
-          echo "${{ vars.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "${{ inputs.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
           echo "::debug::Known hosts updated:"
           cat ~/.ssh/known_hosts
           echo "::endgroup::"
@@ -133,18 +133,18 @@ jobs:
           AUTHORIZED_KEYS: "${{ steps.fetch-keys.outputs.authorized_keys }}"
         run: |
           echo "::group::Uploading SSH keys to remote host"
-          echo "::debug::Syncing SSH keys to ${{ vars.SSH_HOSTNAME }}"
+          echo "::debug::Syncing SSH keys to ${{ inputs.SSH_HOSTNAME }}"
 
           # Write directly to remote file
-          echo "$AUTHORIZED_KEYS" | ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo tee /home/collaborator/.ssh/authorized_keys > /dev/null"
+          echo "$AUTHORIZED_KEYS" | ssh "github@${{ inputs.SSH_HOSTNAME }}" "sudo tee /home/collaborator/.ssh/authorized_keys > /dev/null"
 
           echo "::endgroup::"
       - name: Verify authorized_keys
         run: |
           echo "::group::Verifying authorized_keys on remote host"
           echo "::debug::Current authorized_keys on remote host:"
-          ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo cat /home/collaborator/.ssh/authorized_keys"
+          ssh "github@${{ inputs.SSH_HOSTNAME }}" "sudo cat /home/collaborator/.ssh/authorized_keys"
 
-          remote_key_count=$(ssh "github@${{ vars.SSH_HOSTNAME }}" "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
-          echo "::notice::✓ Synced $remote_key_count SSH keys to ${{ vars.SSH_HOSTNAME }}"
+          remote_key_count=$(ssh "github@${{ inputs.SSH_HOSTNAME }}" "sudo grep -c '^command=' /home/collaborator/.ssh/authorized_keys" || true)
+          echo "::notice::✓ Synced $remote_key_count SSH keys to ${{ inputs.SSH_HOSTNAME }}"
           echo "::endgroup::"

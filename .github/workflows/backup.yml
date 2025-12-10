@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   pg_dump:
-    if: vars.SSH_HOSTNAME != ''
+    if: inputs.SSH_HOSTNAME != ''
     name: PostgreSQL
     runs-on: ubuntu-latest
     concurrency: pg_dump
@@ -31,13 +31,13 @@ jobs:
       - name: Pin known hosts
         run: |
           echo "::group::Pinning known hosts"
-          echo "${{ vars.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          echo "${{ inputs.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
           echo "::debug::Known hosts updated:"
           cat ~/.ssh/known_hosts
           echo "::endgroup::"
       - name: Setting up Docker context for remote deployment
         run: |
-          docker context create production --description "Production Server" --docker "host=ssh://github@${{ vars.SSH_HOSTNAME }}"
+          docker context create production --description "Production Server" --docker "host=ssh://github@${{ inputs.SSH_HOSTNAME }}"
           docker context use production
           touch .env
       - name: Capture Postgres backup
